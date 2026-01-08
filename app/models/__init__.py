@@ -2,9 +2,9 @@ from app.database import Base
 from .users import User
 from .roles import Role
 from .assets import Asset
-from ..Employee_models.employees import Employee
+from .employees import Employee
 from .attendance import Attendance
 from .leaves import Leave
-from ..Departments_module.department import Department
+from .department import Department
 from .designation import Designation
-from ..Employee_models.documents import EmployeeDocument
+from .documents import EmployeeDocument
