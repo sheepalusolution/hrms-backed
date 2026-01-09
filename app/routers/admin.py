@@ -1,14 +1,9 @@
-from fastapi import APIRouter, Depends
-from app.core.roles import role_required
+from fastapi import APIRouter
+from app.core.roles import Roles, role_required
+from fastapi import Depends
 
-router = APIRouter(prefix="/admin", tags=["Admin"])
+router = APIRouter(prefix="/admin", tags=["admin"])
 
-# Admin only
 @router.get("/dashboard")
-def admin_dashboard(user=Depends(role_required(["Admin"]))):
-    return {"message": "Admin Dashboard"}
-
-# HR + Manager
-@router.get("/employees")
-def view_employees(user=Depends(role_required(["HR", "Manager"]))):
-    return {"message": "Employee List"}
+def admin_dashboard(user=Depends(role_required(Roles.ADMIN))):
+    return {"message": f"Welcome Admin {user['user_id']}"}
