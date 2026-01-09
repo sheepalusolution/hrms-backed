@@ -1,23 +1,22 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-from database import get_db
-from app.core.security import decode_token
-from app.models.users import User  # adjust if your model path differs
+from app.core.jwt import decode_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = decode_token(token)
-        user_id = int(payload.get("sub"))
+        user_id = payload.get("sub")
+        role = payload.get("role")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token")
+        return {"user_id": user_id, "role": role}
     except Exception:
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
+        raise HTTPException(status_code=401, detail="Invalid token")
 
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
 
+def require_admin(user=Depends(get_current_user)):
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
     return user
