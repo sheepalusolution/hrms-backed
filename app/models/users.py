@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
-from app.database import Base 
+from app.database import Base
 from datetime import datetime
 from sqlalchemy.orm import relationship
 
@@ -13,4 +13,4 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    role = relationship("Role", back_populates="users")
+    role = relationship("Role", back_populates="users")   

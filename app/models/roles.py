@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text
 from app.database import Base
 from sqlalchemy.orm import relationship
+
 class Role(Base):
     __tablename__ = "roles"
 
@@ -8,4 +9,4 @@ class Role(Base):
     name = Column(String(100), unique=True)
     description = Column(Text)
 
-    users = relationship("User", back_populates="roles")
+    users = relationship("User", back_populates="role")   
