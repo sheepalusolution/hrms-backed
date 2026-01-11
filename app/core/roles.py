@@ -4,7 +4,10 @@ class Role(str, Enum):
     ADMIN = "admin"
     USER = "user"
     GUEST = "guest"
-    MANAGER = "manager"
-    EMPLOYEE = "employee"
-    HR = "hr"
-    
+
+# Optional: helper functions
+def is_admin(role: Role) -> bool:
+    return role == Role.ADMIN
+
+def is_user(role: Role) -> bool:
+    return role == Role.USER
