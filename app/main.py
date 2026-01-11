@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.module.auth.router import router as auth_router
-from app.module.employee.router import router as employees_router
+from app.module.employee.routers import router as employees_router
 from app.module.attendance.router import router as attendance_router
 
 app = FastAPI(title="HRMS Backend")
