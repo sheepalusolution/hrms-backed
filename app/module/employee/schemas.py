@@ -1,8 +1,9 @@
 from pydantic import BaseModel, EmailStr
-from datetime import date
 from typing import Optional
+from datetime import date
 from enum import Enum
 
+# Enums matching your SQLAlchemy model
 class EmployeeTypeEnum(str, Enum):
     full_time = "full_time"
     intern = "intern"
@@ -13,9 +14,10 @@ class EmployeeStatusEnum(str, Enum):
     resigned = "resigned"
     leave = "leave"
 
-class EmployeeBase(BaseModel):
+# Request schema for creating/updating employee
+class EmployeeCreate(BaseModel):
     user_id: int
-    e_code: str
+    e_code: Optional[str] = None
     first_name: str
     last_name: str
     dob: Optional[date] = None
@@ -24,36 +26,35 @@ class EmployeeBase(BaseModel):
     email: Optional[EmailStr] = None
     department_id: Optional[int] = None
     designation_id: Optional[int] = None
-    employee_type: Optional[EmployeeTypeEnum] = None
+    employee_type: Optional[EmployeeTypeEnum] = EmployeeTypeEnum.full_time
     join_date: Optional[date] = None
     end_date: Optional[date] = None
-    status: Optional[EmployeeStatusEnum] = None  # Enum for status
+    status: Optional[EmployeeStatusEnum] = EmployeeStatusEnum.active
     address: Optional[str] = None
     emergency_contact: Optional[str] = None
     nationality: Optional[str] = None
 
-class EmployeeCreate(EmployeeBase):
-    pass
-
-class EmployeeUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    dob: Optional[date] = None
-    gender: Optional[str] = None
-    ph_no: Optional[str] = None
-    email: Optional[EmailStr] = None
-    department_id: Optional[int] = None
-    designation_id: Optional[int] = None
-    employee_type: Optional[EmployeeTypeEnum] = None
-    join_date: Optional[date] = None
-    end_date: Optional[date] = None
-    status: Optional[EmployeeStatusEnum] = None
-    address: Optional[str] = None
-    emergency_contact: Optional[str] = None
-    nationality: Optional[str] = None
-
-class EmployeeOut(EmployeeBase):
+# Response schema for API output
+class EmployeeResponse(BaseModel):
     id: int
+    user_id: int
+    e_code: Optional[str]
+    first_name: str
+    last_name: str
+    dob: Optional[date]
+    gender: Optional[str]
+    ph_no: Optional[str]
+    email: Optional[EmailStr]
+    department_id: Optional[int]
+    designation_id: Optional[int]
+    employee_type: EmployeeTypeEnum
+    join_date: Optional[date]
+    end_date: Optional[date]
+    status: EmployeeStatusEnum
+    address: Optional[str]
+    emergency_contact: Optional[str]
+    nationality: Optional[str]
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  
+    }
