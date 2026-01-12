@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float
 from app.core.database import Base
-
+from sqlalchemy.orm import relationship
 class Asset(Base):
     __tablename__ = "assets"
 
@@ -10,3 +10,5 @@ class Asset(Base):
     quantity = Column(Integer, default=1)
     value = Column(Float, nullable=True)
     description = Column(String, nullable=True)
+    
+    employee = relationship("Employee", back_populates="assets")

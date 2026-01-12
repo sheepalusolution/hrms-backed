@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Date, Enum
 from app.core.database import Base
 import enum
-
+from sqlalchemy.orm import relationship
 # Define an Enum class for allowed leave statuses
 class LeaveStatus(enum.Enum):
     Pending = "Pending"
@@ -17,3 +17,6 @@ class Leave(Base):
     end_date = Column(Date, nullable=False)
     reason = Column(String, nullable=True)
     status = Column(Enum(LeaveStatus), default=LeaveStatus.Pending)
+    
+    employee = relationship("Employee", back_populates="leaves")
+ 

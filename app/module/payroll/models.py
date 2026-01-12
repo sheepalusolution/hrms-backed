@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Numeric, String, Enum
 from app.core.database import Base
 import enum
-
+from sqlalchemy.orm import relationship
 # Define allowed currencies
 class CurrencyEnum(enum.Enum):
     NPR = "NPR"
@@ -17,3 +17,5 @@ class Payroll(Base):
     month = Column(Integer, nullable=False)
     year = Column(Integer, nullable=False)
     currency = Column(Enum(CurrencyEnum), nullable=False, default=CurrencyEnum.NPR)
+
+    employee = relationship("Employee", back_populates="payrolls")

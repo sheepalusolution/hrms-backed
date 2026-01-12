@@ -17,7 +17,7 @@ class Employee(Base):
     __tablename__ = "employee"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
     e_code = Column(String, unique=True)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
@@ -40,3 +40,5 @@ class Employee(Base):
     attendance = relationship("Attendance", back_populates="employee")
     leaves = relationship("LeavesManage", back_populates="employee")
     payroll = relationship("Payroll", back_populates="employee")
+    assets = relationship("Asset", back_populates="assigned_to_employee")
+    user = relationship("User", back_populates="employee_profile")

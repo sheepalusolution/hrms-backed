@@ -11,7 +11,7 @@ class Attendance(Base):
     __tablename__ = "attendance"
 
     id = Column(Integer, primary_key=True)
-    employee_id = Column(Integer, ForeignKey("employees.id"))
+    employee_id = Column(Integer, ForeignKey("employee.id"))
     attendance_date = Column(Date)
 
     clock_in = Column(DateTime)
