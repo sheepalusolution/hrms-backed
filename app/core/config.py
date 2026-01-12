@@ -1,24 +1,30 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    # Database settings
-    DB_USER: str = "hrms_user"
-    DB_PASSWORD: str = "Aayush@123"
-    DB_HOST: str = "localhost"
-    DB_PORT: str = "5432"
-    DB_NAME: str = "hrms_db"
+    # Database
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_HOST: str
+    DB_PORT: str
+    DB_NAME: str
+    SQLALCHEMY_DATABASE_URL: str = None  # computed dynamically
 
-    # SQLAlchemy database URL
-    SQLALCHEMY_DATABASE_URL: str = (
-        f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    )
-
-    # JWT / security settings
-    SECRET_KEY: str = "supersecretkey123"  # Change for production
+    # JWT / security
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # 1 hour
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # 7 days
-    DEBUG: bool = True  # Set False in production
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    DEBUG: bool = True
+
+    # Load .env automatically
+    model_config = SettingsConfigDict(env_file=".env")
+
+    # Compute SQLALCHEMY_DATABASE_URL after init
+    def __post_init__(self):
+        if not self.SQLALCHEMY_DATABASE_URL:
+            self.SQLALCHEMY_DATABASE_URL = (
+                f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+            )
 
 # Single settings instance
 settings = Settings()
