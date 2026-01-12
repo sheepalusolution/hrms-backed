@@ -1,7 +1,13 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
+from typing import TYPE_CHECKING
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.module.role.models import Role
+    from app.module.employee.models import Employee
+    from app.module.leave.models import Leave
 
 class User(Base):
     __tablename__ = "users"
@@ -14,6 +20,7 @@ class User(Base):
     last_login = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Use string references to avoid circular imports
     role = relationship("Role", back_populates="users")
     employees = relationship("Employee", back_populates="user")
-    approved_leaves = relationship("LeavesManage", back_populates="approved_by_user")
+    approved_leaves = relationship("Leave", back_populates="approved_by_user")
