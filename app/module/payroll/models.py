@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Numeric, String, Enum
+from sqlalchemy import Column, Integer, Numeric, Enum, ForeignKey
 from app.core.database import Base
 import enum
 from sqlalchemy.orm import relationship
@@ -11,11 +11,11 @@ class CurrencyEnum(enum.Enum):
 class Payroll(Base):
     __tablename__ = "payroll"
 
-    id = Column(Integer, primary_key=True, index=True)
-    employee_id = Column(Integer, nullable=False)
-    salary = Column(Numeric(12, 2), nullable=False)
-    month = Column(Integer, nullable=False)
-    year = Column(Integer, nullable=False)
+    id = Column(Integer, primary_key=True)
+    employee_id = Column(Integer, ForeignKey("employee.id"))
+    salary = Column(Numeric(10, 2))
+    month = Column(Integer)
+    year = Column(Integer)
     currency = Column(Enum(CurrencyEnum), nullable=False, default=CurrencyEnum.NPR)
 
-    employee = relationship("Employee", back_populates="payrolls")
+    employee = relationship("Employee", back_populates="payroll")

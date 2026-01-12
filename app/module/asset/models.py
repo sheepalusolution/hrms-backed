@@ -1,14 +1,25 @@
-from sqlalchemy import Column, Integer, String, Float
-from app.core.database import Base
+import enum
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, Enum as SQLEnum
 from sqlalchemy.orm import relationship
-class Asset(Base):
+from app.core.database import Base
+
+class AssetStatusEnum(str, enum.Enum):
+    damaged = "Damaged"
+    available = "Available"
+    assigned = "Assigned"
+
+class Assets(Base):
     __tablename__ = "assets"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
-    category = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True)
+    asset_name = Column(String(100), nullable=False)
     quantity = Column(Integer, default=1)
-    value = Column(Float, nullable=True)
-    description = Column(String, nullable=True)
     
+    status = Column(SQLEnum(AssetStatusEnum), default=AssetStatusEnum.available)
+    
+    employee_id = Column(Integer, ForeignKey("employee.id"), nullable=True)
+    assigned_date = Column(Date, nullable=True)
+    return_date = Column(Date, nullable=True)
+    condition_on_return = Column(Text, nullable=True)
+
     employee = relationship("Employee", back_populates="assets")

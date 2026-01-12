@@ -6,7 +6,7 @@ from app.module.role.models import Role
 from app.module.employee.models import Employee
 from app.module.department.models import Department
 from app.module.designation.models import Designation
-from app.module.Asset.models import Asset
+from app.module.Asset.models import Assets
 from app.module.leave.models import Leave
 from app.module.attendance.models import Attendance
 from app.module.payroll.models import Payroll
@@ -23,7 +23,7 @@ from app.module.leave.routers import router as leave_router
 from app.module.attendance.router import router as attendance_router
 from app.module.payroll.router import router as payroll_router
 from app.module.audit.router import router as audit_router
-from app.module.document.router import router as document_router
+
 
 # FastAPI app
 from fastapi import FastAPI

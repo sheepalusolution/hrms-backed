@@ -27,18 +27,24 @@ class Employee(Base):
     email = Column(String)
     department_id = Column(Integer, ForeignKey("department.id"))
     designation_id = Column(Integer, ForeignKey("designation.id"))
-    employee_type = Column(SQLEnum(EmployeeTypeEnum))  # Enum for type
+    employee_type = Column(SQLEnum(EmployeeTypeEnum))
     join_date = Column(Date)
     end_date = Column(Date, nullable=True)
-    status = Column(SQLEnum(EmployeeStatusEnum))  # Enum for status
+    status = Column(SQLEnum(EmployeeStatusEnum))
     address = Column(String)
     emergency_contact = Column(String)
     nationality = Column(String)
 
-    department = relationship("Department", back_populates="employees")
+    # Relationships
+    department = relationship(
+        "Department",
+        foreign_keys=[department_id],  # ✅ avoids AmbiguousForeignKeysError
+        back_populates="employees"
+    )
     designation = relationship("Designation", back_populates="employees")
     attendance = relationship("Attendance", back_populates="employee")
-    leaves = relationship("LeavesManage", back_populates="employee")
+    leaves = relationship("Leave", back_populates="employee")
     payroll = relationship("Payroll", back_populates="employee")
-    assets = relationship("Asset", back_populates="assigned_to_employee")
-    user = relationship("User", back_populates="employee_profile")
+    assets = relationship("Assets", back_populates="employee")
+    users = relationship("User", back_populates="employee")
+    documents = relationship("Document", back_populates="employee")

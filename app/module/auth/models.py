@@ -22,5 +22,5 @@ class User(Base):
 
     # Use string references to avoid circular imports
     role = relationship("Role", back_populates="users")
-    employees = relationship("Employee", back_populates="user")
+    employee = relationship("Employee", back_populates="users")
     approved_leaves = relationship("Leave", back_populates="approved_by_user")

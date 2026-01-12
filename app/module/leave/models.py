@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, Enum
+from sqlalchemy import Column, Integer, String, Date, Enum, Text, ForeignKey
 from app.core.database import Base
 import enum
 from sqlalchemy.orm import relationship
@@ -11,12 +11,13 @@ class LeaveStatus(enum.Enum):
 class Leave(Base):
     __tablename__ = "leaves"
 
-    id = Column(Integer, primary_key=True, index=True)
-    employee_id = Column(Integer, nullable=False)
-    start_date = Column(Date, nullable=False)
-    end_date = Column(Date, nullable=False)
-    reason = Column(String, nullable=True)
+    id = Column(Integer, primary_key=True)
+    employee_id = Column(Integer, ForeignKey("employee.id"))
+    max_days_per_year = Column(Integer)
+    approved_by = Column(Integer, ForeignKey("users.id"))
+    reason = Column(Text)
+
     status = Column(Enum(LeaveStatus), default=LeaveStatus.Pending)
-    
+
     employee = relationship("Employee", back_populates="leaves")
- 
+    approved_by_user = relationship("User", back_populates="approved_leaves")
