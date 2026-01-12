@@ -1,5 +1,12 @@
-from fastapi import FastAPI
 from app.core.database import Base, engine
+
+# 🔥 Import all models first!
+from app.module.auth.models import User
+from app.module.role.models import Role
+from app.module.employee.models import Employee
+from app.module.department.models import Department
+from app.module.designation.models import Designation
+from app.module.Asset.models import Asset
 
 # Import routers
 from app.module.auth.router import router as auth_router
@@ -8,7 +15,8 @@ from app.module.employee.routers import router as employee_router
 from app.module.Asset.router import router as asset_router
 from app.module.department.router import router as department_router
 
-# Initialize FastAPI app
+# FastAPI app
+from fastapi import FastAPI
 app = FastAPI(title="HRMS Backend")
 
 # Include routers
@@ -18,5 +26,5 @@ app.include_router(employee_router, prefix="/employee")
 app.include_router(asset_router, prefix="/asset")
 app.include_router(department_router, prefix="/department")
 
-# Create all tables
+# 🔥 Now SQLAlchemy knows all tables
 Base.metadata.create_all(bind=engine)
