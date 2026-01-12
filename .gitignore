@@ -153,7 +153,10 @@ activemq-data/
 .venv
 venv/
 venv.bak/
-
+ENV/
+env/
+env.bak/
+.env
 # Spyder project settings
 .spyderproject
 .spyproject
