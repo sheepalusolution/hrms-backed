@@ -14,4 +14,4 @@ class AuditLogOut(BaseModel):
     details: str | None
 
     class Config:
-        orm_mode = True
+        from_attribute = True

@@ -24,4 +24,4 @@ class DesignationOut(DesignationBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attribute_mode = True

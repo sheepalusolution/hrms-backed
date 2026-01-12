@@ -17,4 +17,4 @@ class DocumentOut(BaseModel):
     employee_id: int | None
 
     class Config:
-        orm_mode = True
+        from_attribute = True
