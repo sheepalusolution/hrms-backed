@@ -8,7 +8,7 @@ SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 
 def create_tokens(data: dict):
-    
+
     # 1. Access Token (expires in 30 mins)
     access_token_expires = datetime.utcnow() + timedelta(minutes=30)
     access_payload = data.copy()
@@ -28,10 +28,6 @@ def create_tokens(data: dict):
     }
 
 def verify_refresh_token(token: str) -> Optional[dict]:
-    """
-    Requirement: Token refresh logged.
-    Validates the refresh token and returns payload if valid.
-    """
     try:
         # Decodes and checks expiration (exp) automatically
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
