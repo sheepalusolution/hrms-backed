@@ -1,30 +1,28 @@
 import jwt
 from fastapi import HTTPException, status
 from passlib.context import CryptContext
-from app.core.config import settings # Import your settings here
+from app.core.config import settings 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
-
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    # Truncate to 72 bytes to satisfy bcrypt limits
+    safe_password = password.encode('utf-8')[:72]
+    return pwd_context.hash(safe_password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    safe_password = plain_password.encode('utf-8')[:72]
+    return pwd_context.verify(safe_password, hashed_password)
 
 def decode_token(token: str):
     try:
-        # Using settings.SECRET_KEY and settings.ALGORITHM from your config.py
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token, 
+            settings.SECRET_KEY, 
+            algorithms=[settings.ALGORITHM]
+        )
         return payload
     except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=401, detail="Token has expired")
     except jwt.PyJWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=401, detail="Invalid token")
