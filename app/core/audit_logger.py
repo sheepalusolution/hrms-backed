@@ -1,36 +1,35 @@
-from datetime import datetime
-from fastapi import Request
 import logging
+import json
+from datetime import datetime
+from sqlalchemy.orm import Session
+from app.module.audit.models import AuditLog
 
-# Configure basic logger
-logger = logging.getLogger("audit_logger")
-logger.setLevel(logging.INFO)
+# Setup File Logger
+file_logger = logging.getLogger("secure_audit")
+file_logger.setLevel(logging.INFO)
+handler = logging.FileHandler("audit_secure.log")
+handler.setFormatter(logging.Formatter("%(message)s"))
+file_logger.addHandler(handler)
 
-# Optional: write to file
-file_handler = logging.FileHandler("audit.log")
-formatter = logging.Formatter(
-    "%(asctime)s - %(levelname)s - %(message)s"
-)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+def log_auth_event(db: Session, action: str, user_id: str, ip: str, role: str = "N/A", description: str = None):
+    # 1. Save to Database
+    db_log = AuditLog(
+        user_id=str(user_id),
+        action=action,
+        role=role,
+        ip_address=ip,
+        description=description
+    )
+    db.add(db_log)
+    db.commit()
 
-def log_audit(
-    user_id: int,
-    role: str,
-    action: str,
-    ip_address: str | None = None,
-):
-    """
-    Logs authentication and authorization events
-    """
-    timestamp = datetime.utcnow().isoformat()
-    log_entry = {
-        "timestamp": timestamp,
-        "user_id": user_id,
-        "role": role,
+    # 2. Save to Secure File (JSON format for masking/parsing)
+    file_entry = {
+        "timestamp": datetime.utcnow().isoformat(),
         "action": action,
-        "ip": ip_address
+        "user": user_id,
+        "ip": ip,
+        "role": role,
+        "details": description
     }
-
-    # Log to console & file
-    logger.info(log_entry)
+    file_logger.info(json.dumps(file_entry))
