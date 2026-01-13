@@ -1,13 +1,19 @@
-from datetime import timedelta
-from app.core.security import create_access_token, create_refresh_token
+from datetime import datetime, timedelta
+from jose import jwt
+from app.core.config import settings
+
+ACCESS_EXPIRE = 15
+REFRESH_EXPIRE = 7
 
 def create_tokens(data: dict):
-  
-    access_token = create_access_token(data)
-    refresh_token = create_refresh_token(data)
+    access = data.copy()
+    refresh = data.copy()
+
+    access["exp"] = datetime.utcnow() + timedelta(minutes=ACCESS_EXPIRE)
+    refresh["exp"] = datetime.utcnow() + timedelta(days=REFRESH_EXPIRE)
 
     return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
+        "access_token": jwt.encode(access, settings.SECRET_KEY, algorithm="HS256"),
+        "refresh_token": jwt.encode(refresh, settings.SECRET_KEY, algorithm="HS256"),
         "token_type": "bearer"
     }

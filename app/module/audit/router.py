@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.module.audit import models, schemas
-from app.module.auth.router import get_current_user
+from app.module.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/audit", tags=["Audit Logs"])
 

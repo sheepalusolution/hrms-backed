@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Form
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -9,23 +9,22 @@ from app.core.security import verify_password, decode_token
 from app.core.token import create_tokens
 from app.core.roles import Role
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+# 1. Initialize the router
+router = APIRouter(tags=["Auth"]) # Removed prefix="/auth" here to avoid the /auth/auth issue
 
-# Use OAuth2PasswordBearer for token validation
-from fastapi.security import OAuth2PasswordBearer
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# 2. Define oauth2_scheme at the TOP to fix NameError
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-
-# Login endpoint using form data
+# 3. Login endpoint using the standard OAuth2 form
 @router.post("/login", response_model=TokenResponse)
 def login(
-    email: str = Form(...), 
-    password: str = Form(...),
+    form_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
 ):
-    # Authenticate user
-    user = db.query(User).filter(User.email == email).first()
-    if not user or not verify_password(password, user.password_hash):
+    # OAuth2PasswordRequestForm uses 'username' field to hold the email
+    user = db.query(User).filter(User.email == form_data.username).first()
+    
+    if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials"
@@ -38,8 +37,7 @@ def login(
 
     return create_tokens(payload)
 
-
-# Get current user
+# 4. Get current user
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -55,8 +53,7 @@ def get_current_user(
 
     return user
 
-
-# Role-based access decorator
+# 5. Role-based access
 def role_required(required_role: Role):
     def wrapper(user: User = Depends(get_current_user)):
         if user.role != required_role:
