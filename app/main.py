@@ -38,3 +38,7 @@ app.include_router(auth_router, prefix="/auth")
 
 # 🔥 Now SQLAlchemy knows all tables
 Base.metadata.create_all(bind=engine)
+
+@app.get("/")
+def root():
+    return {"message": "Welcome to Shepalu Solution HRMS API"}
