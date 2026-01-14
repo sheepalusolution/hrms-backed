@@ -40,5 +40,5 @@ app.include_router(auth_router, prefix="/auth")
 Base.metadata.create_all(bind=engine)
 
 @app.get("/")
-def root():
+def Home():
     return {"message": "Welcome to Shepalu Solution HRMS API"}
