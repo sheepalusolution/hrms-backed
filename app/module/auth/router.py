@@ -21,7 +21,7 @@ def register(
     user_exists = db.query(User).filter(User.email == email).first()
     
     if user_exists:
-        # FIX: user_id is None (NULL in DB) because we can't save email string in Integer column
+        # Pass user_id as None because it doesn't exist yet for this entry
         log_auth_event(db, "REGISTER_FAILED", None, ip, description=f"Duplicate email: {email}")
         raise HTTPException(status_code=400, detail="A user with this email already exists.")
     
@@ -36,7 +36,6 @@ def register(
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-        # SUCCESS: Now we have a numeric ID
         log_auth_event(db, "REGISTER_SUCCESS", new_user.id, ip, role="1")
     except Exception as e:
         db.rollback()
@@ -55,11 +54,9 @@ def login(
     user = db.query(User).filter(User.email == form_data.username).first()
     
     if not user or not verify_password(form_data.password, user.password_hash):
-        # FIX: user_id is None, move the attempted username to the description
         log_auth_event(db, "LOGIN_FAILED", None, ip, description=f"Failed attempt for: {form_data.username}")
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    # SUCCESS: Log the integer user.id
     log_auth_event(db, "LOGIN_SUCCESS", user.id, ip, role=str(user.role_id))
 
     payload = {"sub": str(user.id), "role_id": user.role_id}
@@ -71,8 +68,15 @@ def logout(
     current_user: User = Depends(get_current_user), 
     db: Session = Depends(get_db)
 ):
-    # Log the successful logout with the correct integer ID
-    log_auth_event(db, "LOGOUT", current_user.id, request.client.host, role=str(current_user.role_id))
+    # CHANGED: Explicitly using "LOGOUT_SUCCESS" to make it stand out in pgAdmin
+    log_auth_event(
+        db=db, 
+        action="LOGOUT_SUCCESS", 
+        user_id=current_user.id, 
+        ip=request.client.host, 
+        role=str(current_user.role_id),
+        description=f"User {current_user.email} logged out successfully"
+    )
     return {"msg": "Successfully logged out"}
 
 @router.post("/refresh")
@@ -92,6 +96,6 @@ def refresh(
     user = db.query(User).filter(User.id == user_id).first()
     
     if user:
-        log_auth_event(db, "TOKEN_REFRESH", user.id, ip, role=str(user.role_id))
+        log_auth_event(db, "TOKEN_REFRESH_SUCCESS", user.id, ip, role=str(user.role_id))
     
     return create_tokens({"sub": str(user.id), "role_id": user.role_id})
