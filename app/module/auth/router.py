@@ -9,7 +9,6 @@ from app.core.audit_logger import log_auth_event
 from app.module.auth.dependencies import get_current_user
 
 router = APIRouter(tags=["Auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # REGISTER
 @router.post("/register", status_code=status.HTTP_201_CREATED)
@@ -59,37 +58,69 @@ def login(
         log_auth_event(db, "LOGIN_FAILED", None, ip, description=f"Failed attempt for: {form_data.username}")
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    if not user.is_active:
+        log_auth_event(db, "LOGIN_FAILED", user.id, ip, description="Inactive user attempted login")
+        raise HTTPException(status_code=403, detail="User account is inactive")
+
     log_auth_event(db, "LOGIN_SUCCESS", user.id, ip, role=str(user.role_id))
 
-    payload = {"sub": str(user.email), "role_id": user.role_id}  # sub=email is safer
+    # Payload includes email (sub) and role for RBAC
+    payload = {"sub": str(user.email), "role_id": user.role_id}
     return create_tokens(payload)
+
+# PROFILE
+@router.get("/profile")
+def get_profile(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Re-fetch user to get fresh data from database
+    user = db.query(User).filter(User.id == current_user.id).first()
+    
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+    
+    return {
+        "id": user.id,
+        "email": user.email,
+        "role_id": user.role_id,
+        "is_active": user.is_active,
+        "status": "Authorized"
+    }
 
 # LOGOUT
 @router.post("/logout")
 def logout(
+    request: Request,
     current_user: User = Depends(get_current_user),
-    request: Request = None,
     db: Session = Depends(get_db)
 ):
-    # Audit log
-    log_auth_event(
-        db=db, 
-        action="LOGOUT_SUCCESS", 
-        user_id=current_user.id, 
-        ip=request.client.host if request else "N/A",
-        role=str(current_user.role_id),
-        description=f"User {current_user.email} logged out successfully"
-    )
-    return {"msg": "Successfully logged out"}
-
-# PROFILE
-@router.get("/profile")
-def profile(user: User = Depends(get_current_user)):
-    return {
-        "id": user.id,
-        "email": user.email,
-        "role_id": user.role_id
-    }
+    try:
+        # Verify user still exists and is active
+        user = db.query(User).filter(User.id == current_user.id).first()
+        
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        log_auth_event(
+            db=db, 
+            action="LOGOUT_SUCCESS", 
+            user_id=current_user.id, 
+            ip=request.client.host,
+            role=str(current_user.role_id),
+            description=f"User {current_user.email} logged out successfully"
+        )
+        return {"msg": "Successfully logged out"}
+    
+    except Exception as e:
+        log_auth_event(
+            db=db,
+            action="LOGOUT_ERROR",
+            user_id=current_user.id,
+            ip=request.client.host,
+            description=f"Logout error: {str(e)}"
+        )
+        raise HTTPException(status_code=500, detail="Error during logout")
 
 # REFRESH
 @router.post("/refresh")
@@ -108,8 +139,9 @@ def refresh(
     user_email = payload.get("sub")
     user = db.query(User).filter(User.email == user_email).first()
     
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
+    if not user or not user.is_active:
+        log_auth_event(db, "REFRESH_FAILED", user.id if user else None, ip, description="User not found or inactive")
+        raise HTTPException(status_code=401, detail="User not found or inactive")
     
     log_auth_event(db, "TOKEN_REFRESH_SUCCESS", user.id, ip, role=str(user.role_id))
     

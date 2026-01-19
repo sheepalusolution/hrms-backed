@@ -1,14 +1,14 @@
 import jwt
 from datetime import datetime, timedelta
 from typing import Optional
-from app.core.config import settings  # Importing from your existing config
+from app.core.config import settings
 
-# Use the variables from your settings object
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 
 def create_tokens(data: dict):
-
+    """Create access and refresh tokens"""
+    
     # 1. Access Token (expires in 30 mins)
     access_token_expires = datetime.utcnow() + timedelta(minutes=30)
     access_payload = data.copy()
@@ -28,6 +28,7 @@ def create_tokens(data: dict):
     }
 
 def verify_refresh_token(token: str) -> Optional[dict]:
+    """Verify refresh token and return payload"""
     try:
         # Decodes and checks expiration (exp) automatically
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
