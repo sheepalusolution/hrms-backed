@@ -99,3 +99,10 @@ def refresh(
         log_auth_event(db, "TOKEN_REFRESH_SUCCESS", user.id, ip, role=str(user.role_id))
     
     return create_tokens({"sub": str(user.id), "role_id": user.role_id})
+@router.get("/profile")
+def profile(user: User = Depends(get_current_user)):
+    return {
+        "id": user.id,
+        "email": user.email,
+        "role": user.role_id
+    }

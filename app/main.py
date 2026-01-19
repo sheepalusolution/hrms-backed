@@ -1,5 +1,5 @@
 from app.core.database import Base, engine
-
+from fastapi.middleware.cors import CORSMiddleware
 # 🔥 Import all models first!
 from app.module.auth.models import User
 from app.module.role.models import Role
@@ -35,6 +35,13 @@ app.include_router(auth_router, prefix="/auth")
 # app.include_router(employee_router, prefix="/employee")
 # app.include_router(asset_router, prefix="/asset")
 # app.include_router(department_router, prefix="/department")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 🔥 Now SQLAlchemy knows all tables
 Base.metadata.create_all(bind=engine)
