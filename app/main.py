@@ -1,5 +1,6 @@
 from app.core.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.middleware import AuthMiddleware
 # 🔥 Import all models first!
 from app.module.auth.models import User
 from app.module.role.models import Role
@@ -29,18 +30,22 @@ from app.module.audit.router import router as audit_router
 from fastapi import FastAPI
 app = FastAPI(title="HRMS Backend")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["put", "get", "post", "delete", "patch"],
+    allow_headers=["*"],
+)
+
+app.add_middleware(AuthMiddleware)
+
 # Include routers
 app.include_router(auth_router, prefix="/auth")
 # app.include_router(role_router, prefix="/role")
 # app.include_router(employee_router, prefix="/employee")
 # app.include_router(asset_router, prefix="/asset")
 # app.include_router(department_router, prefix="/department")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 
 # 🔥 Now SQLAlchemy knows all tables
 Base.metadata.create_all(bind=engine)
