@@ -10,6 +10,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
 
         PUBLIC_PATHS = [
+            "/auth/register",
             "/auth/login",
             "/auth/refresh",
             "/docs",
