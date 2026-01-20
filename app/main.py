@@ -35,10 +35,9 @@ app.include_router(auth_router, prefix="/auth")
 # app.include_router(employee_router, prefix="/employee")
 # app.include_router(asset_router, prefix="/asset")
 # app.include_router(department_router, prefix="/department")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
