@@ -9,9 +9,6 @@ from app.core.config import settings
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
 
-        # -------------------------------
-        # Public endpoints (NO TOKEN)
-        # -------------------------------
         PUBLIC_PATHS = [
             "/auth/login",
             "/auth/refresh",
@@ -23,9 +20,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path in PUBLIC_PATHS:
             return await call_next(request)
 
-        # -------------------------------
-        # Get Authorization header
-        # -------------------------------
         auth = request.headers.get("Authorization")
 
         if not auth or not auth.startswith("Bearer "):
@@ -36,9 +30,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         token = auth.split(" ")[1]
 
-        # -------------------------------
-        # Verify ACCESS token
-        # -------------------------------
         try:
             payload = jwt.decode(
                 token,
