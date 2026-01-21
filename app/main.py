@@ -33,11 +33,11 @@ app = FastAPI(title="HRMS Backend")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["put", "get", "post", "delete", "patch"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.add_middleware(AuthMiddleware)
+# app.add_middleware(AuthMiddleware)
 
 # Include routers
 app.include_router(auth_router, prefix="/auth")
