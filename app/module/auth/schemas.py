@@ -1,37 +1,24 @@
+from typing import  Optional
 from pydantic import BaseModel, EmailStr
-from typing import Optional
 
-# This is what was missing!
+# ---------- REGISTER (Simplified) ----------
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    full_name: str
+    role_name: str  
 
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-from pydantic import BaseModel, EmailStr
-from typing import Optional
-
-# ---------- REGISTER ----------
-class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
+# ---------- LOGIN ----------
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+# ---------- TOKEN RESPONSE ----------
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
 
-
+# ---------- TOKEN PAYLOAD (JWT DATA) ----------
 class TokenPayload(BaseModel):
-    sub: Optional[str] = None   # email
-    role_id: Optional[int] = None
-
-class TokenPayload(BaseModel):
-    sub: Optional[str] = None
-    role: Optional[str] = None
+    sub: Optional[str] = None      # Stores user email
+    role: Optional[str] = None     # Stores ROLE NAME (e.g., "superadmin")

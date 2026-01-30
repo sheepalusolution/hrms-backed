@@ -1,47 +1,29 @@
+from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.module.auth.models import User
-from app.module.role.models import Role
 from app.core.security import get_password_hash
 
-EMAIL = "superadmin@hrms.com"
-PASSWORD = "SuperAdmin@123"
+SUPERADMIN_EMAIL = "Admin123@gmail.com"
+SUPERADMIN_PASSWORD = "Admin@123"
+SUPERADMIN_ROLE_ID = 4  # SUPERADMIN
 
-db = SessionLocal()
+def create_superadmin():
+    db: Session = SessionLocal()
 
-try:
-    # 1️⃣ Ensure SUPERADMIN role exists
-    role = db.query(Role).filter(Role.name == "SUPERADMIN").first()
-    if not role:
-        role = Role(name="SUPERADMIN")
-        db.add(role)
-        db.commit()
-        db.refresh(role)
-        print("✅ SUPERADMIN role created")
-
-    # 2️⃣ Check if superadmin already exists
-    user = db.query(User).filter(User.email == EMAIL).first()
+    user = db.query(User).filter(User.email == SUPERADMIN_EMAIL).first()
     if user:
-        print("⚠️ SuperAdmin already exists")
-        exit()
+        print("✅ SuperAdmin already exists")
+        return
 
-    # 3️⃣ Create superadmin user
-    superadmin = User(
-        email=EMAIL,
-        password_hash=get_password_hash(PASSWORD),
-        role_id=role.id,
+    admin = User(
+        email=SUPERADMIN_EMAIL,
+        password_hash=get_password_hash(SUPERADMIN_PASSWORD),
+        role_id=SUPERADMIN_ROLE_ID,
         is_active=True
     )
 
-    db.add(superadmin)
+    db.add(admin)
     db.commit()
-
-    print(" SuperAdmin created successfully")
-    print(" Email:", EMAIL)
-    print(" Password:", PASSWORD)
-
-except Exception as e:
-    db.rollback()
-    print(" Error:", e)
-
-finally:
     db.close()
+
+    print("🚀 SuperAdmin created successfully")

@@ -39,18 +39,17 @@ def role_required(role: Role):
         if current_user.role != role.value:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Permission denied"
+                detail="Access denied"
             )
         return current_user
     return checker
 
 
-def superadmin_required(
-    current_user: User = Depends(get_current_user)
-):
-    if current_user.role != Role.SUPERADMIN.value:
+def get_superadmin(current_user: User = Depends(get_current_user)):
+    # If the user is logged in but NOT role_id 4, throw 403
+    if current_user.role_id != 4:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="SuperAdmin access required"
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="You do not have enough permissions to perform this action"
         )
     return current_user

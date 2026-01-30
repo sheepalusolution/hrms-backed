@@ -1,6 +1,7 @@
 from app.core.database import Base, engine
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.middleware import AuthMiddleware
+from app.create_superadmin import create_superadmin
 # 🔥 Import all models first!
 from app.module.auth.models import User
 from app.module.role.models import Role
@@ -35,6 +36,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 
 # app.add_middleware(AuthMiddleware)
@@ -53,3 +55,10 @@ Base.metadata.create_all(bind=engine)
 @app.get("/")
 def Home():
     return {"message": "Welcome to Shepalu Solution HRMS API"}
+
+@app.on_event("startup")
+def startup_event():
+    
+    print("Checking for Superadmin...")
+    create_superadmin()
+    

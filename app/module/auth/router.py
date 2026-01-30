@@ -8,31 +8,37 @@ from app.core.token import create_tokens, verify_refresh_token
 from app.core.audit_logger import log_auth_event
 from app.module.auth.dependencies import get_current_user
 from app.module.auth.schemas import LoginRequest
+from app.module.auth.schemas import UserCreate
+from app.module.role.models import Role
+
 router = APIRouter(tags=["auth"])
 
 # REGISTER
+# app/module/auth/router.py
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(
-    request: Request,
-    email: str = Form(...),
-    password: str = Form(...),
+    form_data: UserCreate, # Or a specific RegisterRequest schema
     db: Session = Depends(get_db)
 ):
-    ip = request.client.host
-    if db.query(User).filter(User.email == email).first():
-        raise HTTPException(status_code=400, detail="User already exists")
+    # Check if user exists
+    if db.query(User).filter(User.email == form_data.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
 
+    # Determine Role: 
+    # You can pass 'role_id' in the body, or default to 2 (Employee)
     new_user = User(
-        email=email,
-        password_hash=get_password_hash(password),
+        email=form_data.email,
+        password_hash=get_password_hash(form_data.password),
         is_active=True,
-        role_id=1
+        role_id=getattr(form_data, 'role_id', 2) # Default to Employee if not provided
     )
+    
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
-    return {"msg": "User created", "email": email}
+    return {"msg": "User created successfully", "role_id": new_user.role_id}
 
 # LOGIN
 @router.post("/login")
@@ -45,15 +51,40 @@ def login(
     email = form_data.email
     password = form_data.password
 
+    # Fetch user from database
     user = db.query(User).filter(User.email == email).first()
 
+    # Invalid credentials
     if not user or not verify_password(password, user.password_hash):
         log_auth_event(db, "LOGIN_FAILED", None, ip, description=f"Failed attempt for: {email}")
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    # Successful login log
     log_auth_event(db, "LOGIN_SUCCESS", user.id, ip, role=str(user.role_id))
-    payload = {"sub": str(user.email), "role_id": user.role_id}
-    return create_tokens(payload)
+
+    # Map role_id to role name
+    ROLE_MAP = {
+        2: "hr_admin",
+        1: "user",
+        4: "superadmin",
+          # add all your role mappings here
+    }
+    role_name = ROLE_MAP.get(user.role_id, "user")  # default to "user"
+
+    # Create JWT payload
+    payload = {"sub": str(user.email), "role_id": user.role_id, "role_name": role_name}
+
+    # Generate tokens
+    tokens = create_tokens(payload)  # returns {"access_token": ..., "refresh_token": ...}
+
+    # Return tokens + role name + email
+    return {
+        "access_token": tokens["access_token"],
+        "refresh_token": tokens["refresh_token"],
+        "role_name": role_name,  # ✅ frontend can directly use this
+        "email": user.email
+    }
+
 # PROFILE
 @router.get("/profile")
 def profile(current_user: User = Depends(get_current_user)):
