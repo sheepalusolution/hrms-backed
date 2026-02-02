@@ -1,4 +1,6 @@
 import jwt
+import secrets
+import hashlib
 from datetime import datetime, timedelta
 from typing import Optional
 from app.core.config import settings
@@ -6,32 +8,67 @@ from app.core.config import settings
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 
-def create_tokens(data: dict):
-    """Create access and refresh tokens"""
-    
-    # 1. Access Token (expires in 30 mins)
-    access_token_expires = datetime.utcnow() + timedelta(minutes=30)
-    access_payload = data.copy()
-    access_payload.update({"exp": access_token_expires})
-    access_token = jwt.encode(access_payload, SECRET_KEY, algorithm=ALGORITHM)
 
-    # 2. Refresh Token (expires in 7 days)
-    refresh_token_expires = datetime.utcnow() + timedelta(days=7)
-    refresh_payload = data.copy()
-    refresh_payload.update({"exp": refresh_token_expires})
-    refresh_token = jwt.encode(refresh_payload, SECRET_KEY, algorithm=ALGORITHM)
+# =========================================================
+# ACCESS TOKEN (JWT — short lived)
+# =========================================================
+def create_access_token(data: dict, expires_minutes: int = 30) -> str:
+    """
+    Creates a short-lived JWT access token.
+    Used for authorization.
+    """
+    payload = data.copy()
+    payload.update({
+        "exp": datetime.utcnow() + timedelta(minutes=expires_minutes),
+        "type": "access"
+    })
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
+
+# =========================================================
+# REFRESH TOKEN (OPAQUE — ROTATED)
+# =========================================================
+def generate_refresh_token() -> str:
+    """
+    Generates a cryptographically secure opaque refresh token.
+    NOT a JWT.
+    """
+    return secrets.token_urlsafe(64)
+
+
+def hash_refresh_token(token: str) -> str:
+    """
+    Hashes refresh token before DB storage.
+    Plaintext token is NEVER stored.
+    """
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+# =========================================================
+# TOKEN PAIR CREATION
+# =========================================================
+def create_tokens(data: dict) -> dict:
+    """
+    Creates ONLY the access token.
+    Refresh token is generated & rotated separately.
+    """
     return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
+        "access_token": create_access_token(data),
         "token_type": "bearer"
     }
 
-def verify_refresh_token(token: str) -> Optional[dict]:
-    """Verify refresh token and return payload"""
+
+# =========================================================
+# VERIFY ACCESS TOKEN ONLY
+# =========================================================
+def verify_access_token(token: str) -> Optional[dict]:
+    """
+    Verifies access token and returns payload.
+    """
     try:
-        # Decodes and checks expiration (exp) automatically
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("type") != "access":
+            return None
         return payload
     except jwt.PyJWTError:
         return None
