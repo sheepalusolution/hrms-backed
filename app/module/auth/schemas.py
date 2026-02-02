@@ -5,16 +5,7 @@ from pydantic import BaseModel, EmailStr
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    name: str        # From "Full Name" field in UI
-    phone: str
-    confirm_password: str
-    citizenship: str
-    department_id: int
-    designation_id: int
-    role_name: str
-    role_id: int
-class Config:
-        from_attributes = True
+    role_name: str  
     
 # ---------- LOGIN ----------
 class LoginRequest(BaseModel):

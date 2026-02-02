@@ -14,8 +14,7 @@ from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash
 from app.core.token import create_tokens, generate_refresh_token, hash_refresh_token
 from app.core.audit_logger import log_auth_event
-from app.module.employee.models import Employee
-from app.module.role.models import Role
+
 from app.module.auth.models import User, RefreshToken
 from app.module.auth.schemas import LoginRequest, UserCreate
 from app.module.auth.dependencies import get_current_user
@@ -25,67 +24,31 @@ router = APIRouter(tags=["auth"])
 # ------------------------
 # REGISTER
 # ------------------------
-from app.module.role.models import Role 
-
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(
     form_data: UserCreate,
     db: Session = Depends(get_db)
 ):
-    # 1. Check for existing user
     if db.query(User).filter(User.email == form_data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    try:
-        # 2. Lookup Role Name (Dynamic for all Role IDs)
-        role = db.query(Role).filter(Role.id == form_data.role_id).first()
-        if not role:
-            raise HTTPException(status_code=404, detail="Role ID not found")
+    new_user = User(
+        email=form_data.email,
+        password_hash=get_password_hash(form_data.password),
+        is_active=True,
+        role_id=form_data.role_id  # default Employee
+    )
 
-        # 3. Create Auth User
-        new_user = User(
-            email=form_data.email,
-            password_hash=get_password_hash(form_data.password),
-            is_active=True,
-            role_id=form_data.role_id
-        )
-        db.add(new_user)
-        db.flush() 
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
 
-        # 4. Create Employee Profile 
-        # (This is still needed in the DB, even if not returned in JSON)
-        name_parts = form_data.name.strip().split(" ", 1)
-        f_name = name_parts[0]
-        l_name = name_parts[1] if len(name_parts) > 1 else ""
+    return {
+        "msg": "User created successfully",
+        "role_id": new_user.role_id
+    }
 
-        new_employee = Employee(
-            user_id=new_user.id,
-            first_name=f_name,
-            last_name=l_name,
-            email=form_data.email,
-            ph_no=form_data.phone,
-            nationality=form_data.citizenship,
-            department_id=form_data.department_id,
-            designation_id=form_data.designation_id,
-            status="Active"
-        )
-        db.add(new_employee)
 
-        db.commit()
-
-        # 5. Return specifically user_name and role_name
-        return {
-            "msg": "User created successfully",
-            "user_name": new_user.email,
-            "role_id": new_user.role_id,
-            "role_name": role.name  # Example: "Admin", "Financer", etc.
-        }
-
-    except Exception as e:
-        db.rollback()
-        # This re-raises the error so you can see it in terminal if it's not Pydantic related
-        if isinstance(e, HTTPException): raise e
-        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 # ------------------------
 # LOGIN
 # ------------------------
