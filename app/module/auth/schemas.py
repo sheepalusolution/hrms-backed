@@ -5,7 +5,8 @@ from pydantic import BaseModel, EmailStr
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    role_name: str  
+    role_name: str 
+    role_id : int 
     
 # ---------- LOGIN ----------
 class LoginRequest(BaseModel):

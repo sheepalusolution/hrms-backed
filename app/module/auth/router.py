@@ -86,6 +86,9 @@ def login(
         1: "user",
         2: "hr_admin",
         4: "superadmin",
+        7: "manager",
+        8: "recruiter",
+        6: "finance"
     }
 
     role_name = ROLE_MAP.get(user.role_id, "user")
