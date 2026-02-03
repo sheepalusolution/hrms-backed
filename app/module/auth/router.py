@@ -85,6 +85,7 @@ def login(
     ROLE_MAP = {
         1: "user",
         2: "hr_admin",
+        3: "employee",
         4: "superadmin",
         7: "manager",
         8: "recruiter",
