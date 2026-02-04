@@ -11,5 +11,4 @@ class Designation(Base):
     level = Column(String)
     dep_id = Column(Integer, ForeignKey("department.id"))
 
-    employees = relationship("Employee", back_populates="designation")
     department = relationship("Department", back_populates="designations")

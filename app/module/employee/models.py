@@ -15,36 +15,42 @@ class EmployeeStatusEnum(str, enum.Enum):
 
 class Employee(Base):
     __tablename__ = "employee"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    e_code = Column(String, unique=True)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id")) # Ensure this matches the 'users' table name
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     dob = Column(Date)
     gender = Column(String)
     ph_no = Column(String)
     email = Column(String)
+    password = Column(String)
     department_id = Column(Integer, ForeignKey("department.id"))
-    designation_id = Column(Integer, ForeignKey("designation.id"))
+    
+    # FIX: Ensure "role.id" matches the __tablename__ in your Role model (often "roles")
+    role_id = Column(Integer, ForeignKey("roles.id")) 
+    
     employee_type = Column(SQLEnum(EmployeeTypeEnum))
     join_date = Column(Date)
     end_date = Column(Date, nullable=True)
     status = Column(SQLEnum(EmployeeStatusEnum))
     address = Column(String)
-    emergency_contact = Column(String)
     nationality = Column(String)
 
     # Relationships
     department = relationship(
         "Department",
-        foreign_keys=[department_id],  # ✅ avoids AmbiguousForeignKeysError
+        foreign_keys=[department_id],
         back_populates="employees"
     )
-    designation = relationship("Designation", back_populates="employees")
+    
+    # FIX: String reference "Role" must match the Class name in role/models.py
+    role = relationship("Role", back_populates="employees")
+    
+    # FIX: Rename "users" to "user" (singular) for better readability
+    user = relationship("User", back_populates="employee") 
+    
     attendance = relationship("Attendance", back_populates="employee")
     leaves = relationship("Leave", back_populates="employee")
     payroll = relationship("Payroll", back_populates="employee")
     assets = relationship("Assets", back_populates="employee")
-    users = relationship("User", back_populates="employee")
     documents = relationship("Document", back_populates="employee")

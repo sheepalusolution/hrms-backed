@@ -16,39 +16,73 @@ from app.core.token import create_tokens, generate_refresh_token, hash_refresh_t
 from app.core.audit_logger import log_auth_event
 
 from app.module.auth.models import User, RefreshToken
-from app.module.auth.schemas import LoginRequest, UserCreate
+from app.module.auth.schemas import LoginRequest, EmployeeCreate
 from app.module.auth.dependencies import get_current_user
+from app.module.employee.models import Employee, EmployeeStatusEnum, EmployeeTypeEnum
+from app.module.role.models import Role
+from app.module.department.models import Department
+from app.module.auth.service import hash_password
 
 router = APIRouter(tags=["auth"])
 
-# ------------------------
+# ------------------------  
 # REGISTER
 # ------------------------
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(
-    form_data: UserCreate,
-    db: Session = Depends(get_db)
-):
-    if db.query(User).filter(User.email == form_data.email).first():
+@router.post("/register")
+def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
+    # 1. Lookups for Department and Role (Case-Insensitive)
+    dept = db.query(Department).filter(Department.name.ilike(data.department_name)).first()
+    role = db.query(Role).filter(Role.name.ilike(data.role_name)).first()
+    
+    if not dept or not role:
+        raise HTTPException(status_code=400, detail="Invalid Department or Role name selected")
+
+    # 2. Check if Email already exists
+    if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    # 3. Create the Auth User (Fixes the [null] password issue)
     new_user = User(
-        email=form_data.email,
-        password_hash=get_password_hash(form_data.password),
-        is_active=True,
-        role_id=form_data.role_id  # default Employee
+        email=data.email,
+        password_hash=get_password_hash(data.password), # Store hash in 'users' table
+        role_id=role.id,
+        is_active=True
     )
-
     db.add(new_user)
+    db.flush() 
+
+    # 4. Create the Employee Profile using all UI fields
+    new_employee = Employee(
+    user_id=new_user.id,
+    first_name=data.first_name,
+    last_name=data.last_name,
+    dob=data.dob,
+    gender=data.gender,
+    ph_no=data.phone,
+    email=data.email,
+    password=hash_password(data.password),  # Store hashed password in 'employee' table
+    department_id=dept.id,
+    role_id=role.id,
+    join_date=data.join_date,
+    end_date=data.end_date,
+    # Use the normalized variable here
+    employee_type=EmployeeTypeEnum(data.employee_type), 
+    status=EmployeeStatusEnum.active,
+    address=data.address,
+    nationality=data.nationality
+)
+
+    db.add(new_employee)
     db.commit()
-    db.refresh(new_user)
 
+    # 5. Return requested format
     return {
-        "msg": "User created successfully",
-        "role_id": new_user.role_id
+        "message": "Employee Registered Successfully",
+        "employee_email": new_employee.email,
+        "department_name": dept.name,
+        "role_name": role.name,
+        "status": new_employee.status,
     }
-
-
 # ------------------------
 # LOGIN
 # ------------------------

@@ -25,7 +25,7 @@ from app.module.leave.routers import router as leave_router
 from app.module.attendance.router import router as attendance_router
 from app.module.payroll.router import router as payroll_router
 from app.module.audit.router import router as audit_router
-
+from app.module.designation.router import router as designation_router
 
 # FastAPI app
 from fastapi import FastAPI
@@ -43,12 +43,13 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router, prefix="/auth")
-# app.include_router(role_router, prefix="/role")
-# app.include_router(employee_router, prefix="/employee")
+app.include_router(role_router, prefix="/role")
+app.include_router(employee_router, prefix="/employee")
 # app.include_router(asset_router, prefix="/asset")
-# app.include_router(department_router, prefix="/department")
-
-
+app.include_router(department_router, prefix="/department")
+#  app.include_router(leave_router, prefix="/leave")
+# app.include_router(attendance_router, prefix="/attendance")
+# app.include_router(designation_router, prefix="/designations")
 # 🔥 Now SQLAlchemy knows all tables
 Base.metadata.create_all(bind=engine)
 

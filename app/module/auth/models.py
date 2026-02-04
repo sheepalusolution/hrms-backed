@@ -22,7 +22,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     role = relationship("Role", back_populates="users")
-    employee = relationship("Employee", back_populates="users")
+    employee = relationship("Employee", back_populates="user")  
     approved_leaves = relationship("Leave", back_populates="approved_by_user")
 
     # 🔐 One user can have multiple refresh tokens (multiple sessions)

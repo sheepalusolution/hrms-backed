@@ -11,17 +11,6 @@ router = APIRouter(
 )
 
 # -----------------------------
-# Create Employee
-# -----------------------------
-@router.post("/", response_model=schemas.EmployeeOut, status_code=status.HTTP_201_CREATED)
-def create_employee(employee: schemas.EmployeeCreate, db: Session = Depends(get_db)):
-    db_employee = models.Employee(**employee.dict())
-    db.add(db_employee)
-    db.commit()
-    db.refresh(db_employee)
-    return db_employee
-
-# -----------------------------
 # Get All Employees
 # -----------------------------
 @router.get("/", response_model=List[schemas.EmployeeOut])
