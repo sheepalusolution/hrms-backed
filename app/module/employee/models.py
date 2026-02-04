@@ -6,7 +6,7 @@ import enum
 class EmployeeTypeEnum(str, enum.Enum):
     full_time = "full_time"
     intern = "intern"
-    contract = "contract"
+    part_time = "part_time"
 
 class EmployeeStatusEnum(str, enum.Enum):
     active = "Active"
