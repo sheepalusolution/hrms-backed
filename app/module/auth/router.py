@@ -21,7 +21,6 @@ from app.module.auth.dependencies import get_current_user
 from app.module.employee.models import Employee, EmployeeStatusEnum, EmployeeTypeEnum
 from app.module.role.models import Role
 from app.module.department.models import Department
-from app.module.auth.service import hash_password
 
 router = APIRouter(tags=["auth"])
 
@@ -30,52 +29,59 @@ router = APIRouter(tags=["auth"])
 # ------------------------
 @router.post("/register")
 def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
-    # 1. Lookups for Department and Role (Case-Insensitive)
+
+    # 1. Department & Role lookup
     dept = db.query(Department).filter(Department.name.ilike(data.department_name)).first()
     role = db.query(Role).filter(Role.name.ilike(data.role_name)).first()
-    
+
     if not dept or not role:
         raise HTTPException(status_code=400, detail="Invalid Department or Role name selected")
 
-    # 2. Check if Email already exists
+    # 2. Email check
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # 3. Create the Auth User (Fixes the [null] password issue)
+    # 3. Create auth user
+    hashed_pwd = get_password_hash(data.password)
+
     new_user = User(
         email=data.email,
-        password_hash=get_password_hash(data.password), # Store hash in 'users' table
+        password_hash=hashed_pwd,
         role_id=role.id,
         is_active=True
     )
     db.add(new_user)
-    db.flush() 
+    db.flush()
 
-    # 4. Create the Employee Profile using all UI fields
+    # 4. Create employee (NO enum manipulation here)
     new_employee = Employee(
     user_id=new_user.id,
     first_name=data.first_name,
     last_name=data.last_name,
     dob=data.dob,
     gender=data.gender,
-    ph_no=data.phone,
+    ph_no=data.ph_no,
     email=data.email,
-    password=hash_password(data.password),  # Store hashed password in 'employee' table
+    password=hashed_pwd,
     department_id=dept.id,
     role_id=role.id,
     join_date=data.join_date,
     end_date=data.end_date,
-    # Use the normalized variable here
-    employee_type=EmployeeTypeEnum(data.employee_type), 
-    status=EmployeeStatusEnum.active,
+    employee_type=str(data.employee_type),
+    status=str(data.status) if hasattr(data, "status") else EmployeeStatusEnum.active.value,
     address=data.address,
     nationality=data.nationality
 )
 
-    db.add(new_employee)
-    db.commit()
 
-    # 5. Return requested format
+    db.add(new_employee)
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
     return {
         "message": "Employee Registered Successfully",
         "employee_email": new_employee.email,
@@ -83,7 +89,7 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
         "role_name": role.name,
         "status": new_employee.status,
     }
-# ------------------------
+
 # LOGIN
 # ------------------------
 @router.post("/login")

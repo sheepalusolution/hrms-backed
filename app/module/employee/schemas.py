@@ -4,9 +4,9 @@ from typing import Optional
 from enum import Enum
 
 class EmployeeTypeEnum(str, Enum):
-    full_time = "full_time"
-    intern = "intern"
-    contract = "contract"
+    full_time = "full_time",
+    intern = "intern",
+    part_time = "part_time"
 
 class EmployeeStatusEnum(str, Enum):
     active = "Active"

@@ -12,7 +12,7 @@ class EmployeeCreate(BaseModel):
     address: str
     gender: str
     dob: date  # Date of Birth
-    phone: str
+    ph_no: str
     department_name: str
     deparment_id:int
     role_name: str
