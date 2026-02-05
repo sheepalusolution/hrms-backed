@@ -1,6 +1,6 @@
 from .employee.models import Employee
 from .department.models import Department
-from .Asset.models import Assets
+from .asset.models import Assets
 from .auth.models import User
 from .leave.models import Leave
 from .payroll.models import Payroll

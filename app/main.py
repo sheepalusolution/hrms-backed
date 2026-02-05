@@ -8,7 +8,7 @@ from app.module.role.models import Role
 from app.module.employee.models import Employee
 from app.module.department.models import Department
 from app.module.designation.models import Designation
-from app.module.Asset.models import Assets
+from app.module.asset.models import Assets
 from app.module.leave.models import Leave
 from app.module.attendance.models import Attendance
 from app.module.payroll.models import Payroll
@@ -19,7 +19,7 @@ from app.module.document.models import Document
 from app.module.auth.router import router as auth_router
 from app.module.role.routers import router as role_router
 from app.module.employee.routers import router as employee_router
-from app.module.Asset.router import router as asset_router
+from app.module.asset.router import router as asset_router
 from app.module.department.router import router as department_router
 from app.module.leave.routers import router as leave_router
 from app.module.attendance.router import router as attendance_router
