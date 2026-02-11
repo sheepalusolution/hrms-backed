@@ -11,20 +11,27 @@ router = APIRouter(
     tags=["Attendance"]
 )
 
+# ===============================
+# CLOCK IN
+# ===============================
 @router.post("/clock-in", status_code=status.HTTP_201_CREATED)
-def clock_in(
-    employee_id: int,
-    db: Session = Depends(get_db)
-):
+def clock_in(employee_id: int, db: Session = Depends(get_db)):
+
+    # Check employee exists
+    employee = db.query(Employee).filter(Employee.id == employee_id).first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
     today = date.today()
 
+    # Prevent double clock-in
     existing = db.query(Attendance).filter(
         Attendance.employee_id == employee_id,
         Attendance.attendance_date == today
     ).first()
 
     if existing:
-        raise HTTPException(status_code=400, detail="Already clocked in")
+        raise HTTPException(status_code=400, detail="Already clocked in today")
 
     attendance = Attendance(
         employee_id=employee_id,
@@ -37,12 +44,18 @@ def clock_in(
     db.commit()
     db.refresh(attendance)
 
-    return {"msg": "Clock-in successful"}
+    return {
+        "message": "Clock-in successful",
+        "clock_in_time": attendance.clock_in
+    }
+
+
+# ===============================
+# CLOCK OUT
+# ===============================
 @router.post("/clock-out")
-def clock_out(
-    employee_id: int,
-    db: Session = Depends(get_db)
-):
+def clock_out(employee_id: int, db: Session = Depends(get_db)):
+
     today = date.today()
 
     attendance = db.query(Attendance).filter(
@@ -50,15 +63,31 @@ def clock_out(
         Attendance.attendance_date == today
     ).first()
 
-    if not attendance or not attendance.clock_in:
-        raise HTTPException(status_code=400, detail="Clock-in not found")
+    if not attendance:
+        raise HTTPException(status_code=400, detail="You must clock-in first")
+
+    if attendance.clock_out:
+        raise HTTPException(status_code=400, detail="Already clocked out")
 
     attendance.clock_out = datetime.utcnow()
-    attendance.working_hours = attendance.clock_out - attendance.clock_in
+
+    # Calculate working hours in hours (float)
+    time_difference = attendance.clock_out - attendance.clock_in
+    attendance.working_hours = round(time_difference.total_seconds() / 3600, 2)
 
     db.commit()
+    db.refresh(attendance)
 
-    return {"msg": "Clock-out successful"}
+    return {
+        "message": "Clock-out successful",
+        "clock_out_time": attendance.clock_out,
+        "working_hours": attendance.working_hours
+    }
+
+
+# ===============================
+# MANUAL MARK (ADMIN USE)
+# ===============================
 @router.post("/mark")
 def mark_attendance(
     employee_id: int,
@@ -69,6 +98,11 @@ def mark_attendance(
     wfh: bool = False,
     db: Session = Depends(get_db)
 ):
+
+    employee = db.query(Employee).filter(Employee.id == employee_id).first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
     attendance = db.query(Attendance).filter(
         Attendance.employee_id == employee_id,
         Attendance.attendance_date == attendance_date
@@ -91,22 +125,30 @@ def mark_attendance(
         db.add(attendance)
 
     db.commit()
-    return {"msg": "Attendance updated"}
+    db.refresh(attendance)
+
+    return {"message": "Attendance updated successfully"}
+
+
+# ===============================
+# GET EMPLOYEE ATTENDANCE
+# ===============================
 @router.get("/employee/{employee_id}")
-def get_employee_attendance(
-    employee_id: int,
-    db: Session = Depends(get_db)
-):
+def get_employee_attendance(employee_id: int, db: Session = Depends(get_db)):
+
     records = db.query(Attendance).filter(
         Attendance.employee_id == employee_id
     ).order_by(Attendance.attendance_date.desc()).all()
 
     return records
+
+
+# ===============================
+# GET BY DATE
+# ===============================
 @router.get("/date/{attendance_date}")
-def get_attendance_by_date(
-    attendance_date: date,
-    db: Session = Depends(get_db)
-):
+def get_attendance_by_date(attendance_date: date, db: Session = Depends(get_db)):
+
     records = db.query(Attendance).filter(
         Attendance.attendance_date == attendance_date
     ).all()
