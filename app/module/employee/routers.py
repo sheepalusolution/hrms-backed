@@ -48,7 +48,7 @@ def update_employee(employee_id: int, employee_data: schemas.EmployeeUpdate, db:
 # Soft Delete Employee (Mark as Resigned)
 # -----------------------------
 @router.delete("/{employee_id}", response_model=schemas.EmployeeOut)
-def soft_delete_employee(employee_id: int, db: Session = Depends(get_db)):
+def delete_employee(employee_id: int, db: Session = Depends(get_db)):
     employee = db.query(models.Employee).filter(models.Employee.id == employee_id).first()
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
