@@ -14,6 +14,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/docs",
             "/openapi.json",
             "/favicon.ico",
+            "/attendance/clock-in",
+            "/attendance/clock-out",
             "/"
         ]
 

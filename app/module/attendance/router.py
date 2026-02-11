@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import  datetime
-from zoneinfo import ZoneInfo
+
 
 from app.core.database import get_db
 from app.module.attendance.models import Attendance
@@ -12,7 +12,7 @@ router = APIRouter(
     tags=["Attendance"]
 )
 
-NEPAL_TZ = ZoneInfo("Asia/Kathmandu")
+
 
 # CLOCK IN
 
@@ -23,11 +23,11 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
 
-    today = datetime.now(tz=NEPAL_TZ).date()  
+      
 
     existing = db.query(Attendance).filter(
         Attendance.employee_id == employee_id,
-        Attendance.attendance_date == today
+        
     ).first()
 
     if existing:
@@ -35,8 +35,7 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
 
     attendance = Attendance(
         employee_id=employee_id,
-        attendance_date=today,
-        clock_in=datetime.now(tz=NEPAL_TZ),  
+        
     )
 
     db.add(attendance)
@@ -45,7 +44,7 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
 
     return {
         "message": "Clock-in successful",
-        "clock_in_time": attendance.clock_in
+        
     }
 
 # CLOCK OUT
@@ -53,11 +52,11 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
 @router.post("/clock-out")
 def clock_out(employee_id: int, db: Session = Depends(get_db)):
 
-    today = datetime.now(tz=NEPAL_TZ).date()
+  
 
     attendance = db.query(Attendance).filter(
         Attendance.employee_id == employee_id,
-        Attendance.attendance_date == today
+       
     ).first()
 
     if not attendance:
@@ -66,7 +65,7 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
     if attendance.clock_out:
         raise HTTPException(status_code=400, detail="Already clocked out")
 
-    attendance.clock_out = datetime.now(tz=NEPAL_TZ)
+    attendance.clock_out = datetime.utcnow()
 
 
 
@@ -75,5 +74,5 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
 
     return {
         "message": "Clock-out successful",
-        "clock_out_time": attendance.clock_out,
+       
     }
