@@ -5,7 +5,7 @@ from typing import List
 from app.core.database import get_db
 from app.module.designation import models, schemas
 
-router = APIRouter()
+router = APIRouter(tags=["Designations"])
 
 # -----------------------------
 # Create Designation

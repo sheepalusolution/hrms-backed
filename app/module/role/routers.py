@@ -49,7 +49,7 @@ def get_roles(db: Session = Depends(get_db)):
 # =========================
 # GET ROLE BY ID
 # =========================
-@router.get("/{role_id}", response_model=RoleResponse)
+@router.get(" {role_id}", response_model=RoleResponse)
 def get_role(role_id: int, db: Session = Depends(get_db)):
     role = db.query(Role).filter(Role.id == role_id).first()
     if not role:
@@ -60,7 +60,7 @@ def get_role(role_id: int, db: Session = Depends(get_db)):
 # =========================
 # UPDATE ROLE
 # =========================
-@router.put("/{role_id}", response_model=RoleResponse)
+@router.put(" {role_id}", response_model=RoleResponse)
 def update_role(
     role_id: int,
     role_data: RoleUpdate,
@@ -81,7 +81,7 @@ def update_role(
 # =========================
 # DELETE ROLE
 # =========================
-@router.delete("/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(" {role_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_role(role_id: int, db: Session = Depends(get_db)):
     role = db.query(Role).filter(Role.id == role_id).first()
     if not role:

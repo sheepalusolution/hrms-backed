@@ -4,7 +4,7 @@ from app.core.database import get_db
 from app.module.audit import models, schemas
 from app.module.auth.dependencies import get_current_user
 
-router = APIRouter()
+router = APIRouter(tags=["Audit Logs"])
 
 
 # 📌 Create audit log (internal use)

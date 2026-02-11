@@ -22,7 +22,7 @@ from app.module.employee.models import Employee, EmployeeStatusEnum, EmployeeTyp
 from app.module.role.models import Role
 from app.module.department.models import Department
 
-router = APIRouter(tags=["auth"])
+router = APIRouter(tags=["Auth"])
 
 # ------------------------  
 # REGISTER

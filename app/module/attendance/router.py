@@ -8,7 +8,6 @@ from app.module.attendance.models import Attendance
 from app.module.employee.models import Employee
 
 router = APIRouter(
-    prefix="/attendance",
     tags=["Attendance"]
 )
 

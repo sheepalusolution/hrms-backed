@@ -6,7 +6,6 @@ from app.core.database import get_db
 from app.module.department import models, schemas
 
 router = APIRouter(
-    prefix="/departments",
     tags=["Departments"]
 )
 
@@ -31,7 +30,7 @@ def get_departments(db: Session = Depends(get_db)):
 # -----------------------------
 # Get Department by ID
 # -----------------------------
-@router.get("{department_id}", response_model=schemas.DepartmentOut)
+@router.get(" {department_id}", response_model=schemas.DepartmentOut)
 def get_department(department_id: int, db: Session = Depends(get_db)):
     department = db.query(models.Department).filter(models.Department.id == department_id).first()
     if not department:
@@ -41,7 +40,7 @@ def get_department(department_id: int, db: Session = Depends(get_db)):
 # -----------------------------
 # Update Department
 # -----------------------------
-@router.put("/{department_id}", response_model=schemas.DepartmentOut)
+@router.put(" {department_id}", response_model=schemas.DepartmentOut)
 def update_department(department_id: int, department_data: schemas.DepartmentUpdate, db: Session = Depends(get_db)):
     department = db.query(models.Department).filter(models.Department.id == department_id).first()
     if not department:
@@ -57,7 +56,7 @@ def update_department(department_id: int, department_data: schemas.DepartmentUpd
 # -----------------------------
 # Delete Department
 # -----------------------------
-@router.delete("/{department_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(" {department_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_department(department_id: int, db: Session = Depends(get_db)):
     department = db.query(models.Department).filter(models.Department.id == department_id).first()
     if not department:
