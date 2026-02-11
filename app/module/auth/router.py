@@ -27,7 +27,7 @@ router = APIRouter(tags=["Auth"])
 # ------------------------  
 # REGISTER
 # ------------------------
-@router.post("/register")
+@router.post(" register")
 def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
 
     # 1. Department & Role lookup
@@ -92,7 +92,7 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
 
 # LOGIN
 # ------------------------
-@router.post("/login")
+@router.post(" login")
 def login(
     request: Request,
     form_data: LoginRequest,
@@ -168,7 +168,7 @@ def login(
 # ------------------------
 # PROFILE
 # ------------------------
-@router.get("/profile")
+@router.get(" profile")
 def profile(current_user: User = Depends(get_current_user)):
     return {
         "email": current_user.email,
@@ -179,7 +179,7 @@ def profile(current_user: User = Depends(get_current_user)):
 # ------------------------
 # REFRESH TOKEN (ROTATION + REUSE DETECTION)
 # ------------------------
-@router.post("/refresh")
+@router.post(" refresh")
 def refresh(
     refresh_token: str = Body(..., embed=True),
     db: Session = Depends(get_db)
@@ -236,7 +236,7 @@ def refresh(
 # ------------------------
 # LOGOUT (REVOKE ALL SESSIONS)
 # ------------------------
-@router.post("/logout")
+@router.post(" logout")
 def logout(
     current_user: User = Depends(get_current_user),
     request: Request = None,

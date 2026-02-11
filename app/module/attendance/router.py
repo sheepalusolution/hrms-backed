@@ -7,11 +7,7 @@ from app.core.database import get_db
 from app.module.attendance.models import Attendance
 from app.module.employee.models import Employee
 
-router = APIRouter(
-    tags=["Attendance"]
-)
-
-
+router = APIRouter(tags=["Attendance"])
 
 # CLOCK IN
 
@@ -21,8 +17,6 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
     employee = db.query(Employee).filter(Employee.id == employee_id).first()
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
-
-      
 
     existing = db.query(Attendance).filter(
         Attendance.employee_id == employee_id,
@@ -53,7 +47,6 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
 def clock_out(employee_id: int, db: Session = Depends(get_db)):
 
   
-
     attendance = db.query(Attendance).filter(
         Attendance.employee_id == employee_id,
        
@@ -66,7 +59,6 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Already clocked out")
 
     attendance.clock_out = datetime.utcnow()
-
 
 
     db.commit()
