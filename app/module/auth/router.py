@@ -1,10 +1,7 @@
-# app/module/auth/router.py
-
 from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    status,
     Request,
     Body
 )
@@ -12,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash
-from app.core.token import create_tokens, generate_refresh_token, hash_refresh_token
+from app.core.token import create_tokens, create_access_token, generate_refresh_token, hash_refresh_token
 from app.core.audit_logger import log_auth_event
 
 from app.module.auth.models import User, RefreshToken
@@ -28,6 +25,7 @@ router = APIRouter(tags=["Auth"])
 # REGISTER
 # ------------------------
 @router.post(" register")
+
 def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
 
     # 1. Department & Role lookup
@@ -92,7 +90,7 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
 
 # LOGIN
 # ------------------------
-@router.post(" login")
+@router.post("/login")
 def login(
     request: Request,
     form_data: LoginRequest,
@@ -140,10 +138,10 @@ def login(
         "role_name": role_name
     }
 
-    # Access token
-    tokens = create_tokens(payload)
+    # Create access token
+    access_token = create_access_token(payload)
 
-    # 🔐 Refresh token (ROTATION READY)
+    # Generate refresh token
     raw_refresh_token = generate_refresh_token()
     refresh_token_hash = hash_refresh_token(raw_refresh_token)
 
@@ -155,14 +153,14 @@ def login(
     )
     db.commit()
 
-    tokens["refresh_token"] = raw_refresh_token
-
     return {
-        "access_token": tokens["access_token"],
-        "refresh_token": tokens["refresh_token"],
+        "access_token": access_token,
+        "refresh_token": raw_refresh_token,  # raw token returned to client
         "role_name": role_name,
         "email": user.email
     }
+
+
 
 
 # ------------------------
