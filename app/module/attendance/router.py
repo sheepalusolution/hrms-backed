@@ -37,6 +37,7 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
         employee_id=employee_id,
         
     )
+    attendance.clock_in = datetime.utcnow()
 
     db.add(attendance)
     db.commit()
