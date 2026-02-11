@@ -7,7 +7,7 @@ from app.module.leave import models, schemas
 
 router = APIRouter()
 
-@router.post("/", response_model=schemas.LeaveOut)
+@router.post("", response_model=schemas.LeaveOut)
 def apply_leave(leave: schemas.LeaveCreate, db: Session = Depends(get_db)):
     new_leave = models.Leave(**leave.dict())
     db.add(new_leave)
@@ -15,6 +15,6 @@ def apply_leave(leave: schemas.LeaveCreate, db: Session = Depends(get_db)):
     db.refresh(new_leave)
     return new_leave
 
-@router.get("/", response_model=List[schemas.LeaveOut])
+@router.get("", response_model=List[schemas.LeaveOut])
 def get_all_leaves(db: Session = Depends(get_db)):
     return db.query(models.Leave).all()

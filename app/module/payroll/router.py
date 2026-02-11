@@ -5,13 +5,10 @@ from typing import List
 from app.core.database import get_db
 from app.module.payroll import models, schemas
 
-router = APIRouter(
-    prefix="/payroll",
-    tags=["Payroll"]
-)
+router = APIRouter()
 
 # Create a new payroll record
-@router.post("/", response_model=schemas.PayrollOut)
+@router.post("", response_model=schemas.PayrollOut)
 def create_payroll(payroll: schemas.PayrollCreate, db: Session = Depends(get_db)):
     new_payroll = models.Payroll(
         employee_id=payroll.employee_id,
@@ -27,7 +24,7 @@ def create_payroll(payroll: schemas.PayrollCreate, db: Session = Depends(get_db)
 
 
 # Get all payroll records
-@router.get("/", response_model=List[schemas.PayrollOut])
+@router.get("", response_model=List[schemas.PayrollOut])
 def get_payrolls(db: Session = Depends(get_db)):
     return db.query(models.Payroll).all()
 

@@ -5,15 +5,12 @@ from typing import List
 from app.core.database import get_db
 from app.module.employee import models, schemas
 
-router = APIRouter(
-    prefix="/employees",
-    tags=["Employees"]
-)
+router = APIRouter()
 
 # -----------------------------
 # Get All Employees
 # -----------------------------
-@router.get("/", response_model=List[schemas.EmployeeOut])
+@router.get("", response_model=List[schemas.EmployeeOut])
 def get_employees(db: Session = Depends(get_db)):
     # Return only non-resigned employees by default
     return db.query(models.Employee).filter(models.Employee.status != models.EmployeeStatusEnum.resigned).all()

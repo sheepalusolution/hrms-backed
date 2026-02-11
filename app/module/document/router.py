@@ -9,7 +9,7 @@ from app.module.document import models, schemas
 router = APIRouter()
 
 # Create a new document
-@router.post("/", response_model=schemas.DocumentOut)
+@router.post("", response_model=schemas.DocumentOut)
 def create_document(document: schemas.DocumentCreate, db: Session = Depends(get_db)):
     new_doc = models.Document(**document.dict())
     db.add(new_doc)
@@ -18,7 +18,7 @@ def create_document(document: schemas.DocumentCreate, db: Session = Depends(get_
     return new_doc
 
 # Get all documents
-@router.get("/", response_model=List[schemas.DocumentOut])
+@router.get("", response_model=List[schemas.DocumentOut])
 def get_documents(db: Session = Depends(get_db)):
     return db.query(models.Document).all()
 

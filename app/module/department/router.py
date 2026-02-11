@@ -13,7 +13,7 @@ router = APIRouter(
 # -----------------------------
 # Create Department
 # -----------------------------
-@router.post("/", response_model=schemas.DepartmentOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=schemas.DepartmentOut, status_code=status.HTTP_201_CREATED)
 def create_department(department: schemas.DepartmentCreate, db: Session = Depends(get_db)):
     db_department = models.Department(**department.dict())
     db.add(db_department)
@@ -24,14 +24,14 @@ def create_department(department: schemas.DepartmentCreate, db: Session = Depend
 # -----------------------------
 # Get All Departments
 # -----------------------------
-@router.get("/", response_model=List[schemas.DepartmentOut])
+@router.get("", response_model=List[schemas.DepartmentOut])
 def get_departments(db: Session = Depends(get_db)):
     return db.query(models.Department).all()
 
 # -----------------------------
 # Get Department by ID
 # -----------------------------
-@router.get("/{department_id}", response_model=schemas.DepartmentOut)
+@router.get("{department_id}", response_model=schemas.DepartmentOut)
 def get_department(department_id: int, db: Session = Depends(get_db)):
     department = db.query(models.Department).filter(models.Department.id == department_id).first()
     if not department:

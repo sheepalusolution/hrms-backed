@@ -5,15 +5,12 @@ from typing import List
 from app.core.database import get_db
 from app.module.designation import models, schemas
 
-router = APIRouter(
-    prefix="/designations",
-    tags=["Designations"]
-)
+router = APIRouter()
 
 # -----------------------------
 # Create Designation
 # -----------------------------
-@router.post("/", response_model=schemas.DesignationOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=schemas.DesignationOut, status_code=status.HTTP_201_CREATED)
 def create_designation(designation: schemas.DesignationCreate, db: Session = Depends(get_db)):
     db_designation = models.Designation(**designation.dict())
     db.add(db_designation)
@@ -24,7 +21,7 @@ def create_designation(designation: schemas.DesignationCreate, db: Session = Dep
 # -----------------------------
 # Get All Designations
 # -----------------------------
-@router.get("/", response_model=List[schemas.DesignationOut])
+@router.get("", response_model=List[schemas.DesignationOut])
 def get_designations(db: Session = Depends(get_db)):
     return db.query(models.Designation).all()
 

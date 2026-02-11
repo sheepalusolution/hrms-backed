@@ -2,10 +2,6 @@ from sqlalchemy import Column, Integer,Date, String, Enum, DateTime, Boolean, In
 import enum
 from app.core.database import Base
 from sqlalchemy.orm import relationship
-class AttendanceStatus(enum.Enum):
-    Present = "Present"
-    Absent = "Absent"
-    Leave = "Leave"
 
 class Attendance(Base):
     __tablename__ = "attendance"
@@ -17,10 +13,8 @@ class Attendance(Base):
     clock_in = Column(DateTime)
     clock_out = Column(DateTime)
 
-    late_or_early_exit = Column(Boolean)
     working_hours = Column(Interval)
 
-    status = Column(Enum(AttendanceStatus), default=AttendanceStatus.Present)
     half_day = Column(Boolean)
     holiday = Column(Boolean)
     work_from_home = Column(Boolean)

@@ -5,10 +5,7 @@ from app.core.database import SessionLocal
 from app.module.role.models import Role
 from app.module.role.schemas import RoleCreate, RoleUpdate, RoleResponse
 
-router = APIRouter(
-    prefix="/roles",
-    tags=["Roles"]
-)
+router = APIRouter(tags=["Role"] )
 
 
 # =========================
@@ -25,7 +22,7 @@ def get_db():
 # =========================
 # CREATE ROLE
 # =========================
-@router.post("/", response_model=RoleResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=RoleResponse, status_code=status.HTTP_201_CREATED)
 def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     existing_role = db.query(Role).filter(Role.name == role.name).first()
     if existing_role:
@@ -44,7 +41,7 @@ def create_role(role: RoleCreate, db: Session = Depends(get_db)):
 # =========================
 # GET ALL ROLES
 # =========================
-@router.get("/", response_model=list[RoleResponse])
+@router.get("", response_model=list[RoleResponse])
 def get_roles(db: Session = Depends(get_db)):
     return db.query(Role).all()
 

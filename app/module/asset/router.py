@@ -8,7 +8,7 @@ from app.module.asset import models, schemas
 router = APIRouter()
 
 # Create a new asset
-@router.post("/", response_model=schemas.AssetOut)
+@router.post("", response_model=schemas.AssetOut)
 def create_asset(asset: schemas.AssetCreate, db: Session = Depends(get_db)):
     db_asset = db.query(models.Asset).filter(models.Asset.name == asset.name).first()
     if db_asset:
@@ -20,7 +20,7 @@ def create_asset(asset: schemas.AssetCreate, db: Session = Depends(get_db)):
     return new_asset
 
 # Get all assets
-@router.get("/", response_model=List[schemas.AssetOut])
+@router.get("", response_model=List[schemas.AssetOut])
 def get_assets(db: Session = Depends(get_db)):
     return db.query(models.Asset).all()
 
