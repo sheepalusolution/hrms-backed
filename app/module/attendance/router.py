@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import date, datetime
@@ -8,7 +9,6 @@ from app.module.attendance.models import Attendance
 from app.module.employee.models import Employee
 
 router = APIRouter(
-    prefix="/attendance",
     tags=["Attendance"]
 )
 
@@ -41,6 +41,7 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
         employee_id=employee_id,
         attendance_date=today,
         clock_in=datetime.now(tz=NEPAL_TZ),  # Actual time in Nepal timezone
+       
     )
 
     db.add(attendance)
@@ -95,6 +96,7 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
 def mark_attendance(
     employee_id: int,
     attendance_date: date,
+    
     half_day: bool = False,
     holiday: bool = False,
     wfh: bool = False,
