@@ -1,10 +1,4 @@
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    Request,
-    Body
-)
+from fastapi import APIRouter, Depends, HTTPException, Request, Body, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -15,17 +9,16 @@ from app.core.audit_logger import log_auth_event
 from app.module.auth.models import User, RefreshToken
 from app.module.auth.schemas import LoginRequest, EmployeeCreate
 from app.module.auth.dependencies import get_current_user
-from app.module.employee.models import Employee, EmployeeStatusEnum, EmployeeTypeEnum
+from app.module.employee.models import Employee, EmployeeStatusEnum
 from app.module.role.models import Role
 from app.module.department.models import Department
 
 router = APIRouter(tags=["Auth"])
 
-# ------------------------  
+# ------------------------
 # REGISTER
 # ------------------------
-@router.post(" register")
-
+@router.post("/register")
 def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
 
     # 1. Department & Role lookup
@@ -49,28 +42,27 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
         is_active=True
     )
     db.add(new_user)
-    db.flush()
+    db.flush()  # ensures new_user.id is available
 
-    # 4. Create employee (NO enum manipulation here)
+    # 4. Create employee
     new_employee = Employee(
-    user_id=new_user.id,
-    first_name=data.first_name,
-    last_name=data.last_name,
-    dob=data.dob,
-    gender=data.gender,
-    ph_no=data.ph_no,
-    email=data.email,
-    password=hashed_pwd,
-    department_id=dept.id,
-    role_id=role.id,
-    join_date=data.join_date,
-    end_date=data.end_date,
-    employee_type=str(data.employee_type),
-    status=str(data.status) if hasattr(data, "status") else EmployeeStatusEnum.active.value,
-    address=data.address,
-    nationality=data.nationality
-)
-
+        user_id=new_user.id,
+        first_name=data.first_name,
+        last_name=data.last_name,
+        dob=data.dob,
+        gender=data.gender,
+        ph_no=data.ph_no,
+        email=data.email,
+        password=hashed_pwd,
+        department_id=dept.id,
+        role_id=role.id,
+        join_date=data.join_date,
+        end_date=data.end_date,
+        employee_type=data.employee_type.value,  # convert enum to string
+        status=data.status.value if data.status else EmployeeStatusEnum.active.value,
+        address=data.address,
+        nationality=data.nationality
+    )
 
     db.add(new_employee)
 
@@ -88,14 +80,22 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
         "status": new_employee.status,
     }
 
+
+# ------------------------
 # LOGIN
 # ------------------------
+ROLE_MAP = {
+    1: "user",
+    2: "hr_admin",
+    3: "employee",
+    4: "superadmin",
+    6: "finance",
+    7: "manager",
+    8: "recruiter"
+}
+
 @router.post("/login")
-def login(
-    request: Request,
-    form_data: LoginRequest,
-    db: Session = Depends(get_db)
-):
+def login(request: Request, form_data: LoginRequest, db: Session = Depends(get_db)):
     ip = request.client.host
     email = form_data.email
     password = form_data.password
@@ -103,70 +103,40 @@ def login(
     user = db.query(User).filter(User.email == email).first()
 
     if not user or not verify_password(password, user.password_hash):
-        log_auth_event(
-            db,
-            "LOGIN_FAILED",
-            None,
-            ip,
-            description=f"Failed attempt for {email}"
-        )
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        log_auth_event(db, "LOGIN_FAILED", None, ip, description=f"Failed login attempt for {email}")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
-    log_auth_event(
-        db,
-        "LOGIN_SUCCESS",
-        user.id,
-        ip,
-        role=str(user.role_id)
-    )
-
-    ROLE_MAP = {
-        1: "user",
-        2: "hr_admin",
-        3: "employee",
-        4: "superadmin",
-        7: "manager",
-        8: "recruiter",
-        6: "finance"
-    }
+    log_auth_event(db, "LOGIN_SUCCESS", user.id, ip, role=str(user.role_id))
 
     role_name = ROLE_MAP.get(user.role_id, "user")
 
     payload = {
         "sub": user.email,
+        "user_id": user.id,
         "role_id": user.role_id,
         "role_name": role_name
     }
 
-    # Create access token
     access_token = create_access_token(payload)
 
-    # Generate refresh token
     raw_refresh_token = generate_refresh_token()
     refresh_token_hash = hash_refresh_token(raw_refresh_token)
 
-    db.add(
-        RefreshToken(
-            user_id=user.id,
-            token_hash=refresh_token_hash
-        )
-    )
+    db.add(RefreshToken(user_id=user.id, token_hash=refresh_token_hash))
     db.commit()
 
     return {
         "access_token": access_token,
-        "refresh_token": raw_refresh_token,  # raw token returned to client
+        "refresh_token": raw_refresh_token,
         "role_name": role_name,
         "email": user.email
     }
 
 
-
-
 # ------------------------
 # PROFILE
 # ------------------------
-@router.get(" profile")
+@router.get("/profile")
 def profile(current_user: User = Depends(get_current_user)):
     return {
         "email": current_user.email,
@@ -175,86 +145,48 @@ def profile(current_user: User = Depends(get_current_user)):
 
 
 # ------------------------
-# REFRESH TOKEN (ROTATION + REUSE DETECTION)
+# REFRESH TOKEN
 # ------------------------
-@router.post(" refresh")
-def refresh(
-    refresh_token: str = Body(..., embed=True),
-    db: Session = Depends(get_db)
-):
+@router.post("/refresh")
+def refresh(refresh_token: str = Body(..., embed=True), db: Session = Depends(get_db)):
+
     token_hash = hash_refresh_token(refresh_token)
 
-    token_db = db.query(RefreshToken).filter(
-        RefreshToken.token_hash == token_hash
-    ).first()
+    token_db = db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).first()
 
-    # 🚨 Token reuse or invalid token
     if not token_db or token_db.is_revoked:
         if token_db:
-            db.query(RefreshToken).filter(
-                RefreshToken.user_id == token_db.user_id
-            ).update({"is_revoked": True})
+            db.query(RefreshToken).filter(RefreshToken.user_id == token_db.user_id).update({"is_revoked": True})
             db.commit()
-
-        raise HTTPException(
-            status_code=401,
-            detail="Refresh token reuse detected. Session revoked."
-        )
+        raise HTTPException(status_code=401, detail="Refresh token reuse detected. Session revoked.")
 
     user = db.query(User).filter(User.id == token_db.user_id).first()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
-    # 🔒 Invalidate old refresh token
-    token_db.is_revoked = True
+    token_db.is_revoked = True  # revoke old token
 
-    # 🔄 Issue new refresh token
     new_refresh_raw = generate_refresh_token()
     new_refresh_hash = hash_refresh_token(new_refresh_raw)
-
-    db.add(
-        RefreshToken(
-            user_id=user.id,
-            token_hash=new_refresh_hash
-        )
-    )
-
+    db.add(RefreshToken(user_id=user.id, token_hash=new_refresh_hash))
     db.commit()
 
-    tokens = create_tokens({
-        "sub": user.email,
-        "role_id": user.role_id
-    })
-
+    tokens = create_tokens({"sub": user.email, "role_id": user.role_id})
     tokens["refresh_token"] = new_refresh_raw
 
     return tokens
 
 
 # ------------------------
-# LOGOUT (REVOKE ALL SESSIONS)
+# LOGOUT
 # ------------------------
-@router.post(" logout")
-def logout(
-    current_user: User = Depends(get_current_user),
-    request: Request = None,
-    db: Session = Depends(get_db)
-):
+@router.post("/logout")
+def logout(current_user: User = Depends(get_current_user), request: Request = None, db: Session = Depends(get_db)):
     ip = request.client.host if request else "unknown"
 
-    # 🔒 Revoke all refresh tokens for user
-    db.query(RefreshToken).filter(
-        RefreshToken.user_id == current_user.id
-    ).update({"is_revoked": True})
-
+    db.query(RefreshToken).filter(RefreshToken.user_id == current_user.id).update({"is_revoked": True})
     db.commit()
 
-    log_auth_event(
-        db,
-        "LOGOUT",
-        current_user.id,
-        ip,
-        role=str(current_user.role_id)
-    )
+    log_auth_event(db, "LOGOUT", current_user.id, ip, role=str(current_user.role_id))
 
     return {"msg": "Successfully logged out"}

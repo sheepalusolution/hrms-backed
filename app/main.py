@@ -39,7 +39,7 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-app.add_middleware(AuthMiddleware)
+# app.add_middleware(AuthMiddleware)
 
 # Include routers
 app.include_router(auth_router, prefix="/auth")

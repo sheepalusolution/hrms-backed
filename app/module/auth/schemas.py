@@ -23,7 +23,7 @@ class EmployeeCreate(BaseModel):
     
 # ---------- LOGIN ----------
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: EmailStr  
     password: str
 
 # ---------- TOKEN RESPONSE ----------
@@ -31,6 +31,10 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+class TokenRequest(BaseModel):
+    username: str
+    password: str
 
 # ---------- TOKEN PAYLOAD (JWT DATA) ----------
 class TokenPayload(BaseModel):

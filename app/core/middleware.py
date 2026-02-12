@@ -1,58 +1,39 @@
-# app/core/middleware.py
-from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
-import jwt
+from jose import jwt, JWTError
+
 from app.core.config import settings
+from app.module.employee.models import Employee
+from app.core.database import get_db
+from sqlalchemy.orm import Session
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        PUBLIC_PATHS = [
-            "/auth/register",
-            "/auth/login",
-            "/auth/refresh",
-            "/docs",
-            "/openapi.json",
-            "/favicon.ico",
-            "/attendance/clock-in",
-            "/attendance/clock-out",
-            "/"
-        ]
-
-        # ✅ Skip public routes and OPTIONS
-        if request.url.path in PUBLIC_PATHS or request.method == "OPTIONS":
+        # Skip auth for login route
+        if request.url.path in ["/auth/login", "/auth/refresh"]:
             return await call_next(request)
 
-        # ✅ Read Bearer token
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "Authorization token missing"}
-            )
+            raise HTTPException(status_code=401, detail="Authorization token missing")
 
         token = auth_header.split(" ")[1]
 
         try:
-            payload = jwt.decode(
-                token,
-                settings.SECRET_KEY,
-                algorithms=[settings.ALGORITHM]
-            )
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            email = payload.get("sub")
+            role_name = payload.get("role_name")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
 
-            # ✅ Save user info for routes
-            request.state.user_id = payload.get("sub")
-            request.state.role_id = payload.get("role_id")
+        # Attach employee/user info to request.state
+        db: Session = next(get_db())
+        employee = db.query(Employee).filter(Employee.email == email).first()
+        if not employee:
+            raise HTTPException(status_code=401, detail="Unauthorized: employee not found")
 
-        except jwt.ExpiredSignatureError:
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "Token expired"}
-            )
-        except jwt.PyJWTError:
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "Invalid token"}
-            )
+        request.state.employee = employee
+        request.state.role_name = role_name
 
-        return await call_next(request)
+        response = await call_next(request)
+        return response
