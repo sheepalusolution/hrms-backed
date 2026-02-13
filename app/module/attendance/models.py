@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer,Date, String, Enum, DateTime, Boolean, Interval, ForeignKey
+from sqlalchemy import Column, Integer,Date,  Enum, TIMESTAMP, Boolean, Float, ForeignKey
 import enum
 from app.core.database import Base
 from sqlalchemy.orm import relationship
@@ -14,11 +14,11 @@ class Attendance(Base):
     employee_id = Column(Integer, ForeignKey("employee.id"))
     attendance_date = Column(Date)
 
-    clock_in = Column(DateTime)
-    clock_out = Column(DateTime)
+    clock_in = Column(TIMESTAMP(timezone=True))   # <- tz-aware
+    clock_out = Column(TIMESTAMP(timezone=True))  # <- tz-aware
+    working_hours = Column(Float, default=0)
 
     late_or_early_exit = Column(Boolean)
-    working_hours = Column(Interval)
 
     status = Column(Enum(AttendanceStatus), default=AttendanceStatus.Present)
     half_day = Column(Boolean)

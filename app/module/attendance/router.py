@@ -56,11 +56,11 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
 # ===============================
 # CLOCK OUT
 # ===============================
-@router.post("/clock-out")
+@router.post("/clock-out", status_code=status.HTTP_200_OK)
 def clock_out(employee_id: int, db: Session = Depends(get_db)):
 
+    # Fetch today's attendance record
     today = datetime.now(tz=NEPAL_TZ).date()
-
     attendance = db.query(Attendance).filter(
         Attendance.employee_id == employee_id,
         Attendance.attendance_date == today
@@ -72,10 +72,17 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
     if attendance.clock_out:
         raise HTTPException(status_code=400, detail="Already clocked out")
 
-    attendance.clock_out = datetime.now(tz=NEPAL_TZ)
+    # Ensure clock_in is timezone-aware
+    clock_in = attendance.clock_in
+    if clock_in.tzinfo is None:
+        clock_in = clock_in.replace(tzinfo=NEPAL_TZ)
 
-    # Calculate working time in hours (float)
-    time_difference = attendance.clock_out - attendance.clock_in
+    # Set clock_out as timezone-aware
+    clock_out = datetime.now(tz=NEPAL_TZ)
+    attendance.clock_out = clock_out
+
+    # Calculate working time in hours
+    time_difference = clock_out - clock_in
     attendance.working_hours = round(time_difference.total_seconds() / 3600, 2)
 
     db.commit()
@@ -86,7 +93,6 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
         "clock_out_time": attendance.clock_out,
         "working_hours": attendance.working_hours
     }
-
 
 # ===============================
 # MANUAL MARK (ADMIN USE)
