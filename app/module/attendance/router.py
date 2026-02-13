@@ -1,11 +1,10 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
 from app.core.database import get_db
-from app.module.attendance.models import Attendance
+from app.module.attendance.models import Attendance, AttendanceStatus
 from app.module.employee.models import Employee
 
 router = APIRouter(
@@ -14,12 +13,6 @@ router = APIRouter(
 
 # Set Nepal timezone
 NEPAL_TZ = ZoneInfo("Asia/Kathmandu")
-
-# Helper function to convert UTC datetime to Nepal timezone
-def to_nepal_time(utc_datetime):
-    if utc_datetime.tzinfo is None:
-        utc_datetime = utc_datetime.replace(tzinfo=timezone.utc)
-    return utc_datetime.astimezone(NEPAL_TZ)
 
 # ===============================
 # CLOCK IN
@@ -47,7 +40,7 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
         employee_id=employee_id,
         attendance_date=today,
         clock_in=datetime.now(tz=NEPAL_TZ),  # Actual time in Nepal timezone
-       
+        status=AttendanceStatus.Present
     )
 
     db.add(attendance)
@@ -65,7 +58,8 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
 # ===============================
 @router.post("/clock-out")
 def clock_out(employee_id: int, db: Session = Depends(get_db)):
-    today = datetime.now(NEPAL_TZ).date()
+
+    today = datetime.now(tz=NEPAL_TZ).date()
 
     attendance = db.query(Attendance).filter(
         Attendance.employee_id == employee_id,
@@ -78,27 +72,22 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
     if attendance.clock_out:
         raise HTTPException(status_code=400, detail="Already clocked out")
 
-    now_utc = datetime.now(timezone.utc)
-    attendance.clock_out = now_utc
+    attendance.clock_out = datetime.now(tz=NEPAL_TZ)
 
-    clock_in = attendance.clock_in
-    if clock_in.tzinfo is None:
-        clock_in = clock_in.replace(tzinfo=timezone.utc)
-
-    time_difference = now_utc - clock_in
-    hours = time_difference.total_seconds() / 3600
-
-    # prevent negative hours
-    attendance.working_hours = round(max(hours, 0), 2)
+    # Calculate working time in hours (float)
+    time_difference = attendance.clock_out - attendance.clock_in
+    attendance.working_hours = round(time_difference.total_seconds() / 3600, 2)
 
     db.commit()
     db.refresh(attendance)
 
     return {
         "message": "Clock-out successful",
-        "clock_out_time": to_nepal_time(attendance.clock_out),
+        "clock_out_time": attendance.clock_out,
         "working_hours": attendance.working_hours
     }
+
+
 # ===============================
 # MANUAL MARK (ADMIN USE)
 # ===============================
@@ -106,7 +95,7 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
 def mark_attendance(
     employee_id: int,
     attendance_date: date,
-    
+    status: AttendanceStatus,
     half_day: bool = False,
     holiday: bool = False,
     wfh: bool = False,

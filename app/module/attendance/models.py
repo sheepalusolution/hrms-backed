@@ -1,21 +1,29 @@
-from sqlalchemy import Column, Integer, DateTime, Boolean, Float, ForeignKey, func
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer,Date, String, Enum, DateTime, Boolean, Interval, ForeignKey
+import enum
 from app.core.database import Base
+from sqlalchemy.orm import relationship
+class AttendanceStatus(enum.Enum):
+    Present = "Present"
+    Absent = "Absent"
+    Leave = "Leave"
+
 class Attendance(Base):
     __tablename__ = "attendance"
 
     id = Column(Integer, primary_key=True)
     employee_id = Column(Integer, ForeignKey("employee.id"))
+    attendance_date = Column(Date)
 
-    attendance_date = Column(DateTime(timezone=True), default=func.now())
+    clock_in = Column(DateTime)
+    clock_out = Column(DateTime)
 
-    clock_in = Column(DateTime(timezone=True))
-    clock_out = Column(DateTime(timezone=True))
+    late_or_early_exit = Column(Boolean)
+    working_hours = Column(Interval)
 
-    working_hours = Column(Float, default=0.0)
-
-    half_day = Column(Boolean, default=False)
-    holiday = Column(Boolean, default=False)
-    work_from_home = Column(Boolean, default=False)
+    status = Column(Enum(AttendanceStatus), default=AttendanceStatus.Present)
+    half_day = Column(Boolean)
+    holiday = Column(Boolean)
+    work_from_home = Column(Boolean)
 
     employee = relationship("Employee", back_populates="attendance")
+    

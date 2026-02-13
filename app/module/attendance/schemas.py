@@ -1,13 +1,29 @@
 from pydantic import BaseModel
 from datetime import date, datetime
 from typing import Optional, List
+from enum import Enum
 
+
+# =====================================================
+# ENUMS
+# =====================================================
+
+class AttendanceStatusEnum(str, Enum):
+    Present = "Present"
+    Absent = "Absent"
+    Leave = "Leave"
+    Late = "Late"
+    Half_Day = "Half_Day"
+
+
+# =====================================================
 # BASE SCHEMA
 # =====================================================
 
 class AttendanceBase(BaseModel):
     employee_id: int
     attendance_date: date
+    status: AttendanceStatusEnum = AttendanceStatusEnum.Present
     half_day: bool = False
     holiday: bool = False
     work_from_home: bool = False
@@ -23,6 +39,7 @@ class AttendanceCreate(AttendanceBase):
 
 
 class AttendanceUpdate(BaseModel):
+    status: Optional[AttendanceStatusEnum] = None
     half_day: Optional[bool] = None
     holiday: Optional[bool] = None
     work_from_home: Optional[bool] = None
@@ -49,6 +66,7 @@ class ClockOutRequest(BaseModel):
 class MarkAttendanceRequest(BaseModel):
     employee_id: int
     attendance_date: date
+    status: AttendanceStatusEnum
     half_day: bool = False
     holiday: bool = False
     work_from_home: bool = False
@@ -68,6 +86,7 @@ class AttendanceResponse(BaseModel):
     clock_out: Optional[datetime] = None
     working_hours: Optional[float] = None  # stored as float hours
 
+    status: AttendanceStatusEnum
     half_day: bool
     holiday: bool
     work_from_home: bool
@@ -84,6 +103,7 @@ class AttendanceResponse(BaseModel):
 class DailyAttendanceResponse(BaseModel):
     employee_id: int
     attendance_date: date
+    status: AttendanceStatusEnum
     clock_in: Optional[datetime] = None
     clock_out: Optional[datetime] = None
     working_hours: Optional[float] = None
