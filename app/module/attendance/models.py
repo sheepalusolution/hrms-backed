@@ -15,8 +15,9 @@ class Attendance(Base):
     employee_id = Column(Integer, ForeignKey("employee.id"))
     attendance_date = Column(Date)
 
-    clock_in = Column(TIMESTAMP(timezone=True))   # <- tz-aware
-    clock_out = Column(TIMESTAMP(timezone=True))  # <- tz-aware
+    clock_in = Column(TIMESTAMP(timezone=True))
+    clock_out = Column(TIMESTAMP(timezone=True))
+
     working_hours = Column(Float, default=0)
 
     late_or_early_exit = Column(Boolean)
