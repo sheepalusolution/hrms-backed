@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer,Date,  Enum, TIMESTAMP, Boolean, Float, F
 import enum
 from app.core.database import Base
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 class AttendanceStatus(enum.Enum):
     Present = "Present"
     Absent = "Absent"
