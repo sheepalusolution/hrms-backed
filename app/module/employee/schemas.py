@@ -8,7 +8,6 @@ from pydantic import BaseModel, EmailStr
 class EmployeeTypeEnum(str, Enum):
     full_time = ("full_time",)
     intern = ("intern",)
-    part_time = "part_time"
 
 
 class EmployeeStatusEnum(str, Enum):

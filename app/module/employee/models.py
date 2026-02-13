@@ -1,5 +1,4 @@
 import enum
-
 from sqlalchemy import Column, Date, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship
@@ -10,8 +9,6 @@ from app.core.database import Base
 class EmployeeTypeEnum(str, enum.Enum):
     full_time = ("full_time",)
     intern = ("intern",)
-    part_time = "part_time"
-
 
 class EmployeeStatusEnum(str, enum.Enum):
     active = "Active"
