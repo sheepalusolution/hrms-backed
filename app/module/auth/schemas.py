@@ -1,6 +1,8 @@
-from typing import  Optional
 from datetime import date
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr
+
 
 # ---------- REGISTER (Simplified) ----------
 class EmployeeCreate(BaseModel):
@@ -14,17 +16,19 @@ class EmployeeCreate(BaseModel):
     dob: date  # Date of Birth
     ph_no: str
     department_name: str
-    deparment_id:int
+    deparment_id: int
     role_name: str
-    role_id:int
+    role_id: int
     employee_type: str
     join_date: date
-    end_date:date
-    
+    end_date: date
+
+
 # ---------- LOGIN ----------
 class LoginRequest(BaseModel):
-    email: EmailStr  
+    email: EmailStr
     password: str
+
 
 # ---------- TOKEN RESPONSE ----------
 class TokenResponse(BaseModel):
@@ -32,11 +36,13 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
 
+
 class TokenRequest(BaseModel):
     username: str
     password: str
 
+
 # ---------- TOKEN PAYLOAD (JWT DATA) ----------
 class TokenPayload(BaseModel):
-    sub: Optional[str] = None      # Stores user email
-    role: Optional[str] = None     # Stores ROLE NAME (e.g., "superadmin")
+    sub: Optional[str] = None  # Stores user email
+    role: Optional[str] = None  # Stores ROLE NAME (e.g., "superadmin")

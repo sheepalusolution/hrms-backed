@@ -1,11 +1,13 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.core.database import get_db
 from app.module.payroll import models, schemas
 
 router = APIRouter(tags=["Payroll"])
+
 
 # Create a new payroll record
 @router.post("", response_model=schemas.PayrollOut)
@@ -15,7 +17,7 @@ def create_payroll(payroll: schemas.PayrollCreate, db: Session = Depends(get_db)
         salary=payroll.salary,
         month=payroll.month,
         year=payroll.year,
-        currency=payroll.currency.value  # store enum as string
+        currency=payroll.currency.value,  # store enum as string
     )
     db.add(new_payroll)
     db.commit()
@@ -51,11 +53,15 @@ def delete_payroll(payroll_id: int, db: Session = Depends(get_db)):
 
 # Optional: Update payroll record
 @router.put("/{payroll_id}", response_model=schemas.PayrollOut)
-def update_payroll(payroll_id: int, payroll_update: schemas.PayrollCreate, db: Session = Depends(get_db)):
+def update_payroll(
+    payroll_id: int,
+    payroll_update: schemas.PayrollCreate,
+    db: Session = Depends(get_db),
+):
     payroll = db.query(models.Payroll).filter(models.Payroll.id == payroll_id).first()
     if not payroll:
         raise HTTPException(status_code=404, detail="Payroll record not found")
-    
+
     payroll.employee_id = payroll_update.employee_id
     payroll.salary = payroll_update.salary
     payroll.month = payroll_update.month

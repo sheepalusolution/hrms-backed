@@ -12,8 +12,10 @@ class Role(str, Enum):
 def is_superadmin(role: Role) -> bool:
     return role == Role.SUPERADMIN
 
+
 def is_admin(role: Role) -> bool:
     return role in (Role.ADMIN, Role.SUPERADMIN)
+
 
 def is_user(role: Role) -> bool:
     return role == Role.USER

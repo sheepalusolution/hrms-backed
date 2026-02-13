@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.module.attendance.models import Attendance, AttendanceStatus
@@ -26,10 +27,13 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
     today = datetime.now(tz=NEPAL_TZ).date()
 
     # Prevent double clock-in
-    existing = db.query(Attendance).filter(
-        Attendance.employee_id == employee_id,
-        Attendance.attendance_date == today
-    ).first()
+    existing = (
+        db.query(Attendance)
+        .filter(
+            Attendance.employee_id == employee_id, Attendance.attendance_date == today
+        )
+        .first()
+    )
 
     if existing:
         raise HTTPException(status_code=400, detail="Already clocked in today")
@@ -41,17 +45,14 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
         employee_id=employee_id,
         attendance_date=today,
         clock_in=clock_in_time,
-        status=AttendanceStatus.Present
+        status=AttendanceStatus.Present,
     )
 
     db.add(attendance)
     db.commit()
     db.refresh(attendance)
 
-    return {
-        "message": "Clock-in successful",
-        "clock_in_time": attendance.clock_in
-    }
+    return {"message": "Clock-in successful", "clock_in_time": attendance.clock_in}
 
 
 # ===============================
@@ -63,10 +64,13 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
     today = datetime.now(tz=NEPAL_TZ).date()
 
     # Fetch today's attendance record
-    attendance = db.query(Attendance).filter(
-        Attendance.employee_id == employee_id,
-        Attendance.attendance_date == today
-    ).first()
+    attendance = (
+        db.query(Attendance)
+        .filter(
+            Attendance.employee_id == employee_id, Attendance.attendance_date == today
+        )
+        .first()
+    )
 
     if not attendance:
         raise HTTPException(status_code=400, detail="You must clock-in first")
@@ -93,5 +97,5 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
     return {
         "message": "Clock-out successful",
         "clock_out_time": attendance.clock_out,
-        "working_hours": attendance.working_hours
+        "working_hours": attendance.working_hours,
     }

@@ -1,8 +1,12 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
 from datetime import datetime
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
+
 from app.core.database import Base
 from app.module.employee.models import Employee
+
+
 class Department(Base):
     __tablename__ = "department"
 
@@ -18,5 +22,5 @@ class Department(Base):
     # Relationship to employees in this department
     employees = relationship(
         "Employee",
-        foreign_keys=lambda: [Employee.department_id],  
+        foreign_keys=lambda: [Employee.department_id],
     )

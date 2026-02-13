@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.module.audit import models, schemas
 from app.module.auth.dependencies import get_current_user
@@ -15,7 +16,7 @@ def create_audit_log(
     table_name: str,
     record_id: int | None,
     description: str,
-    ip_address: str | None
+    ip_address: str | None,
 ):
     log = models.AuditLog(
         user_id=user_id,
@@ -23,7 +24,7 @@ def create_audit_log(
         table_name=table_name,
         record_id=record_id,
         description=description,
-        ip_address=ip_address
+        ip_address=ip_address,
     )
     db.add(log)
     db.commit()
@@ -31,10 +32,7 @@ def create_audit_log(
 
 # 📌 Admin can view all audit logs
 @router.get("", response_model=list[schemas.AuditLogOut])
-def get_audit_logs(
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
-):
+def get_audit_logs(db: Session = Depends(get_db), user=Depends(get_current_user)):
     # Only Admin & HR should be allowed here (you already have RBAC)
     return db.query(models.AuditLog).order_by(models.AuditLog.timestamp.desc()).all()
 
@@ -42,8 +40,6 @@ def get_audit_logs(
 # 📌 Get logs for specific user
 @router.get("/{user_id}", response_model=list[schemas.AuditLogOut])
 def get_user_logs(
-    user_id: int,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
+    user_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)
 ):
     return db.query(models.AuditLog).filter(models.AuditLog.user_id == user_id).all()

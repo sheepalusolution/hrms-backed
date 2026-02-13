@@ -1,12 +1,17 @@
-from sqlalchemy import Column, Integer, Numeric, Enum, ForeignKey
-from app.core.database import Base
 import enum
+
+from sqlalchemy import Column, Enum, ForeignKey, Integer, Numeric
 from sqlalchemy.orm import relationship
+
+from app.core.database import Base
+
+
 # Define allowed currencies
 class CurrencyEnum(enum.Enum):
     NPR = "NPR"
     USD = "USD"
     EUR = "EUR"
+
 
 class Payroll(Base):
     __tablename__ = "payroll"

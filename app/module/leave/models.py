@@ -1,12 +1,17 @@
-from sqlalchemy import Column, Integer, String, Date, Enum, Text, ForeignKey
-from app.core.database import Base
 import enum
+
+from sqlalchemy import Column, Enum, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
+
+from app.core.database import Base
+
+
 # Define an Enum class for allowed leave statuses
 class LeaveStatus(enum.Enum):
     Pending = "Pending"
     Approved = "Approved"
     Rejected = "Rejected"
+
 
 class Leave(Base):
     __tablename__ = "leaves"

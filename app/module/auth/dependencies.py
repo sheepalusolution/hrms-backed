@@ -3,16 +3,15 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.roles import Role
 from app.core.security import decode_token
 from app.module.auth.models import User
-from app.core.roles import Role   
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> User:
 
     payload = decode_token(token)
@@ -38,10 +37,10 @@ def role_required(role: Role):
     def checker(current_user: User = Depends(get_current_user)):
         if current_user.role != role.value:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied"
+                status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
             )
         return current_user
+
     return checker
 
 
@@ -49,7 +48,7 @@ def get_superadmin(current_user: User = Depends(get_current_user)):
     # If the user is logged in but NOT role_id 4, throw 403
     if current_user.role_id != 4:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="You do not have enough permissions to perform this action"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have enough permissions to perform this action",
         )
     return current_user

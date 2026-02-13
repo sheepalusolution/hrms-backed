@@ -1,12 +1,13 @@
-from pydantic import BaseModel
 from datetime import date, datetime
-from typing import Optional, List
 from enum import Enum
+from typing import List, Optional
 
+from pydantic import BaseModel
 
 # =====================================================
 # ENUMS
 # =====================================================
+
 
 class AttendanceStatusEnum(str, Enum):
     Present = "Present"
@@ -20,6 +21,7 @@ class AttendanceStatusEnum(str, Enum):
 # BASE SCHEMA
 # =====================================================
 
+
 class AttendanceBase(BaseModel):
     employee_id: int
     attendance_date: date
@@ -32,6 +34,7 @@ class AttendanceBase(BaseModel):
 # =====================================================
 # CREATE / UPDATE
 # =====================================================
+
 
 class AttendanceCreate(AttendanceBase):
     clock_in: Optional[datetime] = None
@@ -51,9 +54,10 @@ class AttendanceUpdate(BaseModel):
 # CLOCK IN / CLOCK OUT REQUESTS
 # =====================================================
 
+
 class ClockInRequest(BaseModel):
     employee_id: int
-    
+
 
 class ClockOutRequest(BaseModel):
     employee_id: int
@@ -62,6 +66,7 @@ class ClockOutRequest(BaseModel):
 # =====================================================
 # MANUAL MARK REQUEST (ADMIN USE)
 # =====================================================
+
 
 class MarkAttendanceRequest(BaseModel):
     employee_id: int
@@ -75,6 +80,7 @@ class MarkAttendanceRequest(BaseModel):
 # =====================================================
 # FULL RESPONSE
 # =====================================================
+
 
 class AttendanceResponse(BaseModel):
     id: int
@@ -91,14 +97,13 @@ class AttendanceResponse(BaseModel):
     holiday: bool
     work_from_home: bool
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 # =====================================================
 # DAILY DASHBOARD RESPONSE
 # =====================================================
+
 
 class DailyAttendanceResponse(BaseModel):
     employee_id: int
@@ -108,14 +113,13 @@ class DailyAttendanceResponse(BaseModel):
     clock_out: Optional[datetime] = None
     working_hours: Optional[float] = None
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 # =====================================================
 # MONTHLY SUMMARY RESPONSE (PRO LEVEL)
 # =====================================================
+
 
 class MonthlyAttendanceSummary(BaseModel):
     employee_id: int
@@ -127,18 +131,15 @@ class MonthlyAttendanceSummary(BaseModel):
     total_late: int
     total_working_hours: float
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 # =====================================================
 # LIST RESPONSE
 # =====================================================
 
+
 class AttendanceListResponse(BaseModel):
     records: List[AttendanceResponse]
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

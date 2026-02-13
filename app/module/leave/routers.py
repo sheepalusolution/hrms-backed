@@ -1,14 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List
 
-from app.core.database import get_db
-from app.module.leave.models import Leave
-from app.module.employee.models import Employee
-from app.module.auth.models import User
-from app.module.leave.schemas import LeaveCreate, LeaveUpdateStatus, LeaveOut, LeaveStatus
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-router = APIRouter( tags=["Leaves"])
+from app.core.database import get_db
+from app.module.auth.models import User
+from app.module.employee.models import Employee
+from app.module.leave.models import Leave
+from app.module.leave.schemas import (
+    LeaveCreate,
+    LeaveOut,
+    LeaveUpdateStatus,
+)
+
+router = APIRouter(tags=["Leaves"])
+
 
 # =======================
 # Create a Leave
@@ -19,14 +25,12 @@ def create_leave(leave: LeaveCreate, db: Session = Depends(get_db)):
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
 
-    new_leave = Leave(
-        employee_id=leave.employee_id,
-        reason=leave.reason
-    )
+    new_leave = Leave(employee_id=leave.employee_id, reason=leave.reason)
     db.add(new_leave)
     db.commit()
     db.refresh(new_leave)
     return new_leave
+
 
 # =======================
 # Get All Leaves
@@ -34,6 +38,7 @@ def create_leave(leave: LeaveCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=List[LeaveOut])
 def get_leaves(db: Session = Depends(get_db)):
     return db.query(Leave).all()
+
 
 # =======================
 # Get Leave by ID
@@ -45,11 +50,14 @@ def get_leave(leave_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Leave not found")
     return leave
 
+
 # =======================
 # Update Leave Status (Approve/Reject)
 # =======================
 @router.put("/{leave_id}/status", response_model=LeaveOut)
-def update_leave_status(leave_id: int, status_update: LeaveUpdateStatus, db: Session = Depends(get_db)):
+def update_leave_status(
+    leave_id: int, status_update: LeaveUpdateStatus, db: Session = Depends(get_db)
+):
     leave = db.query(Leave).filter(Leave.id == leave_id).first()
     if not leave:
         raise HTTPException(status_code=404, detail="Leave not found")
@@ -64,6 +72,7 @@ def update_leave_status(leave_id: int, status_update: LeaveUpdateStatus, db: Ses
     db.commit()
     db.refresh(leave)
     return leave
+
 
 # =======================
 # Delete Leave

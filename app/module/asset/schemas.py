@@ -1,11 +1,13 @@
 from pydantic import BaseModel
 
+
 class AssetCreate(BaseModel):
     name: str
     category: str
     quantity: int = 1
     value: float | None = None
     description: str | None = None
+
 
 class AssetOut(BaseModel):
     id: int

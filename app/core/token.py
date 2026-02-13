@@ -1,8 +1,10 @@
-import jwt
-import secrets
 import hashlib
+import secrets
 from datetime import datetime, timedelta
 from typing import Optional
+
+import jwt
+
 from app.core.config import settings
 
 SECRET_KEY = settings.SECRET_KEY
@@ -18,10 +20,12 @@ def create_access_token(data: dict, expires_minutes: int = 30) -> str:
     Used for authorization.
     """
     payload = data.copy()
-    payload.update({
-        "exp": datetime.utcnow() + timedelta(minutes=expires_minutes),
-        "type": "access"
-    })
+    payload.update(
+        {
+            "exp": datetime.utcnow() + timedelta(minutes=expires_minutes),
+            "type": "access",
+        }
+    )
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -52,10 +56,7 @@ def create_tokens(data: dict) -> dict:
     Creates ONLY the access token.
     Refresh token is generated & rotated separately.
     """
-    return {
-        "access_token": create_access_token(data),
-        "token_type": "bearer"
-    }
+    return {"access_token": create_access_token(data), "token_type": "bearer"}
 
 
 # =========================================================
@@ -69,6 +70,8 @@ def verify_access_token(token: str) -> Optional[dict]:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "access":
             return None
+
+        print(f"Token verified for user_id: {payload.get('user_id')}")
         return payload
     except jwt.PyJWTError:
         return None

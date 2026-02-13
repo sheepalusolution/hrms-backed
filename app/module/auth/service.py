@@ -1,13 +1,11 @@
-from sqlalchemy.orm import Session
-from fastapi import HTTPException
 import hashlib
 
-from app.module.auth.models import User, RefreshToken
-from app.core.token import (
-    create_tokens,
-    generate_refresh_token,
-    hash_refresh_token
-)
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
+from app.core.token import create_tokens, generate_refresh_token, hash_refresh_token
+from app.module.auth.models import RefreshToken, User
+
 
 # ======================================================
 # PASSWORD UTILITIES
@@ -30,7 +28,7 @@ def create_user(db: Session, email: str, password: str, role_id: int):
         email=email,
         password_hash=hash_password(password),
         role_id=role_id,
-        is_active=True
+        is_active=True,
     )
     db.add(user)
     db.commit()
@@ -41,17 +39,14 @@ def create_user(db: Session, email: str, password: str, role_id: int):
 # ======================================================
 # REFRESH TOKEN ROTATION SERVICE
 # ======================================================
-def rotate_refresh_token(
-    raw_refresh_token: str,
-    db: Session
-) -> dict:
-    
+def rotate_refresh_token(raw_refresh_token: str, db: Session) -> dict:
+
     # 🔐 Hash incoming refresh token
     token_hash = hash_refresh_token(raw_refresh_token)
 
-    token_db = db.query(RefreshToken).filter(
-        RefreshToken.token_hash == token_hash
-    ).first()
+    token_db = (
+        db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).first()
+    )
 
     # 🚨 Token reuse or invalid token
     if not token_db or token_db.is_revoked:
@@ -63,14 +58,11 @@ def rotate_refresh_token(
             db.commit()
 
         raise HTTPException(
-            status_code=401,
-            detail="Refresh token reuse detected. Session revoked."
+            status_code=401, detail="Refresh token reuse detected. Session revoked."
         )
 
     # Get user
-    user = db.query(User).filter(
-        User.id == token_db.user_id
-    ).first()
+    user = db.query(User).filter(User.id == token_db.user_id).first()
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
@@ -82,20 +74,12 @@ def rotate_refresh_token(
     new_refresh_raw = generate_refresh_token()
     new_refresh_hash = hash_refresh_token(new_refresh_raw)
 
-    db.add(
-        RefreshToken(
-            user_id=user.id,
-            token_hash=new_refresh_hash
-        )
-    )
+    db.add(RefreshToken(user_id=user.id, token_hash=new_refresh_hash))
 
     db.commit()
 
     # 🔑 Create new access token
-    tokens = create_tokens({
-        "sub": user.email,
-        "role_id": user.role_id
-    })
+    tokens = create_tokens({"sub": user.email, "role_id": user.role_id})
 
     # Attach rotated refresh token
     tokens["refresh_token"] = new_refresh_raw

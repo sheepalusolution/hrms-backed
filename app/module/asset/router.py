@@ -1,11 +1,13 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.core.database import get_db
 from app.module.asset import models, schemas
 
 router = APIRouter(tags=["Asset"])
+
 
 # Create a new asset
 @router.post("", response_model=schemas.AssetOut)
@@ -19,10 +21,12 @@ def create_asset(asset: schemas.AssetCreate, db: Session = Depends(get_db)):
     db.refresh(new_asset)
     return new_asset
 
+
 # Get all assets
 @router.get("", response_model=List[schemas.AssetOut])
 def get_assets(db: Session = Depends(get_db)):
     return db.query(models.Asset).all()
+
 
 # Get asset by ID
 @router.get("/{asset_id}", response_model=schemas.AssetOut)
@@ -31,6 +35,7 @@ def get_asset(asset_id: int, db: Session = Depends(get_db)):
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
     return asset
+
 
 # Delete asset
 @router.delete("/{asset_id}")

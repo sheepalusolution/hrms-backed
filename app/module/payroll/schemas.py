@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from enum import Enum
+
+from pydantic import BaseModel
+
 
 # Optional: Currency Enum for Pydantic validation
 class CurrencyEnum(str, Enum):
@@ -7,12 +9,14 @@ class CurrencyEnum(str, Enum):
     USD = "USD"
     EUR = "EUR"
 
+
 class PayrollCreate(BaseModel):
     employee_id: int
     salary: float
-    month: int              # 1-12
+    month: int  # 1-12
     year: int
     currency: CurrencyEnum  # NPR, USD, EUR
+
 
 class PayrollOut(BaseModel):
     id: int

@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 
 from app.core.database import SessionLocal
 from app.module.role.models import Role
-from app.module.role.schemas import RoleCreate, RoleUpdate, RoleResponse
+from app.module.role.schemas import RoleCreate, RoleResponse, RoleUpdate
 
-router = APIRouter(tags=["Role"] )
+router = APIRouter(tags=["Role"])
 
 
 # =========================
@@ -27,8 +27,7 @@ def create_role(role: RoleCreate, db: Session = Depends(get_db)):
     existing_role = db.query(Role).filter(Role.name == role.name).first()
     if existing_role:
         raise HTTPException(
-            status_code=400,
-            detail="Role with this name already exists"
+            status_code=400, detail="Role with this name already exists"
         )
 
     new_role = Role(**role.dict())
@@ -61,11 +60,7 @@ def get_role(role_id: int, db: Session = Depends(get_db)):
 # UPDATE ROLE
 # =========================
 @router.put(" {role_id}", response_model=RoleResponse)
-def update_role(
-    role_id: int,
-    role_data: RoleUpdate,
-    db: Session = Depends(get_db)
-):
+def update_role(role_id: int, role_data: RoleUpdate, db: Session = Depends(get_db)):
     role = db.query(Role).filter(Role.id == role_id).first()
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")

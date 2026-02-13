@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from datetime import date
+
+from pydantic import BaseModel
+
 
 class DocumentCreate(BaseModel):
     title: str
@@ -7,6 +9,7 @@ class DocumentCreate(BaseModel):
     file_path: str
     upload_date: date
     employee_id: int | None = None
+
 
 class DocumentOut(BaseModel):
     id: int

@@ -1,13 +1,13 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
-from sqlalchemy.orm import relationship
 from datetime import datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
+
 from app.core.database import Base
 
 if TYPE_CHECKING:
-    from app.module.role.models import Role
-    from app.module.employee.models import Employee
-    from app.module.leave.models import Leave
+    pass
 
 
 class User(Base):
@@ -22,14 +22,12 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     role = relationship("Role", back_populates="users")
-    employee = relationship("Employee", back_populates="user")  
+    employee = relationship("Employee", back_populates="user")
     approved_leaves = relationship("Leave", back_populates="approved_by_user")
 
     # 🔐 One user can have multiple refresh tokens (multiple sessions)
     refresh_tokens = relationship(
-        "RefreshToken",
-        back_populates="user",
-        cascade="all, delete-orphan"
+        "RefreshToken", back_populates="user", cascade="all, delete-orphan"
     )
 
 
@@ -41,9 +39,7 @@ class RefreshToken(Base):
 
     # 🔗 Token belongs to a user
     user_id = Column(
-        Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
 
     # 🔒 HASHED refresh token (NEVER store plaintext)
