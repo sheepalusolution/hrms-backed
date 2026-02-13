@@ -5,7 +5,7 @@ from typing import List
 from app.core.database import get_db
 from app.module.payroll import models, schemas
 
-router = APIRouter()
+router = APIRouter(tags=["Payroll"])
 
 # Create a new payroll record
 @router.post("", response_model=schemas.PayrollOut)

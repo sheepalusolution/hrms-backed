@@ -5,7 +5,7 @@ from typing import List
 from app.core.database import get_db
 from app.module.asset import models, schemas
 
-router = APIRouter(tags=["Assets"])
+router = APIRouter(tags=["Asset"])
 
 # Create a new asset
 @router.post("", response_model=schemas.AssetOut)

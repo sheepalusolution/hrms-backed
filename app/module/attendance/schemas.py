@@ -35,11 +35,11 @@ class AttendanceUpdate(BaseModel):
 # =====================================================
 
 class ClockInRequest(BaseModel):
-    pass
+    employee_id: int
     
 
 class ClockOutRequest(BaseModel):
-    pass
+    employee_id: int
 
 
 # =====================================================

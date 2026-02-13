@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from zoneinfo import ZoneInfo
 
 from app.core.database import get_db
@@ -14,6 +14,12 @@ router = APIRouter(
 
 # Set Nepal timezone
 NEPAL_TZ = ZoneInfo("Asia/Kathmandu")
+
+# Helper function to convert UTC datetime to Nepal timezone
+def to_nepal_time(utc_datetime):
+    if utc_datetime.tzinfo is None:
+        utc_datetime = utc_datetime.replace(tzinfo=timezone.utc)
+    return utc_datetime.astimezone(NEPAL_TZ)
 
 # ===============================
 # CLOCK IN
@@ -59,8 +65,7 @@ def clock_in(employee_id: int, db: Session = Depends(get_db)):
 # ===============================
 @router.post("/clock-out")
 def clock_out(employee_id: int, db: Session = Depends(get_db)):
-
-    today = datetime.now(tz=NEPAL_TZ).date()
+    today = datetime.now(NEPAL_TZ).date()
 
     attendance = db.query(Attendance).filter(
         Attendance.employee_id == employee_id,
@@ -73,22 +78,27 @@ def clock_out(employee_id: int, db: Session = Depends(get_db)):
     if attendance.clock_out:
         raise HTTPException(status_code=400, detail="Already clocked out")
 
-    attendance.clock_out = datetime.now(tz=NEPAL_TZ)
+    now_utc = datetime.now(timezone.utc)
+    attendance.clock_out = now_utc
 
-    # Calculate working time in hours (float)
-    time_difference = attendance.clock_out - attendance.clock_in
-    attendance.working_hours = round(time_difference.total_seconds() / 3600, 2)
+    clock_in = attendance.clock_in
+    if clock_in.tzinfo is None:
+        clock_in = clock_in.replace(tzinfo=timezone.utc)
+
+    time_difference = now_utc - clock_in
+    hours = time_difference.total_seconds() / 3600
+
+    # prevent negative hours
+    attendance.working_hours = round(max(hours, 0), 2)
 
     db.commit()
     db.refresh(attendance)
 
     return {
         "message": "Clock-out successful",
-        "clock_out_time": attendance.clock_out,
+        "clock_out_time": to_nepal_time(attendance.clock_out),
         "working_hours": attendance.working_hours
     }
-
-
 # ===============================
 # MANUAL MARK (ADMIN USE)
 # ===============================

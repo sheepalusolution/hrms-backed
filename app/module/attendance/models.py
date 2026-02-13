@@ -1,23 +1,21 @@
-from sqlalchemy import Column, Integer,Date, String, Enum, DateTime, Boolean, Interval, ForeignKey, func
-import enum
-from app.core.database import Base
+from sqlalchemy import Column, Integer, DateTime, Boolean, Float, ForeignKey, func
 from sqlalchemy.orm import relationship
-
+from app.core.database import Base
 class Attendance(Base):
     __tablename__ = "attendance"
 
     id = Column(Integer, primary_key=True)
     employee_id = Column(Integer, ForeignKey("employee.id"))
-    attendance_date = Column(DateTime(timezone=True), default=func.now()) 
 
-    clock_in = Column(DateTime)
-    clock_out = Column(DateTime)
+    attendance_date = Column(DateTime(timezone=True), default=func.now())
 
-    working_hours = Column(Interval)
+    clock_in = Column(DateTime(timezone=True))
+    clock_out = Column(DateTime(timezone=True))
 
-    half_day = Column(Boolean)
-    holiday = Column(Boolean)
-    work_from_home = Column(Boolean)
+    working_hours = Column(Float, default=0.0)
+
+    half_day = Column(Boolean, default=False)
+    holiday = Column(Boolean, default=False)
+    work_from_home = Column(Boolean, default=False)
 
     employee = relationship("Employee", back_populates="attendance")
-    

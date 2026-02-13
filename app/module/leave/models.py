@@ -13,7 +13,6 @@ class Leave(Base):
 
     id = Column(Integer, primary_key=True)
     employee_id = Column(Integer, ForeignKey("employee.id"))
-    max_days_per_year = Column(Integer)
     approved_by = Column(Integer, ForeignKey("users.id"))
     reason = Column(Text)
 
