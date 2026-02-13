@@ -1,4 +1,5 @@
 import enum
+
 from sqlalchemy import Column, Date, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship
