@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from app.core.audit_logger import log_auth_event
 from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password
@@ -104,25 +103,28 @@ ROLE_MAP = {
 
 @router.post("/login")
 def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
-    request: Request = None,
 ):
-    user = db.query(User).filter(User.email == form_data.username).first()
+    ip = request.client.host
+    email = form_data.username
+    password = form_data.password
 
-    if not user or not verify_password(form_data.password, user.password_hash):
+    user = db.query(User).filter(User.email == email).first()
+
+    if not user or not verify_password(password, user.password_hash):
         log_auth_event(
             db,
             "LOGIN_FAILED",
             None,
-            request.client.host if request else "unknown",
-            description=f"Failed login attempt for {form_data.username}",
+            ip,
+            description=f"Failed login attempt for {email}",
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
         )
 
-    ip = request.client.host if request else "unknown"
     log_auth_event(db, "LOGIN_SUCCESS", user.id, ip, role=str(user.role_id))
 
     role_name = ROLE_MAP.get(user.role_id, "user")

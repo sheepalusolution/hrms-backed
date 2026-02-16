@@ -4,7 +4,7 @@ from app.core.database import SessionLocal
 from app.core.security import get_password_hash
 from app.module.auth.models import User
 
-SUPERADMIN_EMAIL = "Admin123@gmail.com"
+SUPERADMIN_EMAIL = "superadmin123@gmail.com"
 SUPERADMIN_PASSWORD = "Admin@123"
 SUPERADMIN_ROLE_ID = 4  # SUPERADMIN
 
