@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.module.attendance.models import Attendance, AttendanceStatus
+from app.module.attendance.models import Attendance
 from app.module.employee.models import Employee
 from app.module.auth.dependencies import get_current_employee   # 👈 ADD THIS
 
@@ -38,7 +38,7 @@ def clock_in(
         employee_id=current_employee.id,
         attendance_date=today,
         clock_in=clock_in_time,
-        status=AttendanceStatus.Present,
+       
     )
 
     db.add(attendance)

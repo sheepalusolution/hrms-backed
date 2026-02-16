@@ -1,40 +1,22 @@
 from datetime import date, datetime
-from enum import Enum
 from typing import List, Optional
-
 from pydantic import BaseModel
-
-# =====================================================
-# ENUMS
-# =====================================================
-
-
-class AttendanceStatusEnum(str, Enum):
-    Present = "Present"
-    Absent = "Absent"
-    Leave = "Leave"
-    Late = "Late"
-    Half_Day = "Half_Day"
-
 
 # =====================================================
 # BASE SCHEMA
 # =====================================================
 
-
 class AttendanceBase(BaseModel):
     employee_id: int
     attendance_date: date
-    status: AttendanceStatusEnum = AttendanceStatusEnum.Present
     half_day: bool = False
     holiday: bool = False
-    work_from_home: bool = False
+   
 
 
 # =====================================================
 # CREATE / UPDATE
 # =====================================================
-
 
 class AttendanceCreate(AttendanceBase):
     clock_in: Optional[datetime] = None
@@ -42,10 +24,8 @@ class AttendanceCreate(AttendanceBase):
 
 
 class AttendanceUpdate(BaseModel):
-    status: Optional[AttendanceStatusEnum] = None
     half_day: Optional[bool] = None
     holiday: Optional[bool] = None
-    work_from_home: Optional[bool] = None
     clock_in: Optional[datetime] = None
     clock_out: Optional[datetime] = None
 
@@ -54,33 +34,28 @@ class AttendanceUpdate(BaseModel):
 # CLOCK IN / CLOCK OUT REQUESTS
 # =====================================================
 
-
 class ClockInRequest(BaseModel):
-    employee_id: int
+   pass
 
 
 class ClockOutRequest(BaseModel):
-    employee_id: int
+   pass
 
 
 # =====================================================
 # MANUAL MARK REQUEST (ADMIN USE)
 # =====================================================
 
-
 class MarkAttendanceRequest(BaseModel):
     employee_id: int
     attendance_date: date
-    status: AttendanceStatusEnum
     half_day: bool = False
     holiday: bool = False
-    work_from_home: bool = False
-
+    
 
 # =====================================================
 # FULL RESPONSE
 # =====================================================
-
 
 class AttendanceResponse(BaseModel):
     id: int
@@ -90,12 +65,10 @@ class AttendanceResponse(BaseModel):
 
     clock_in: Optional[datetime] = None
     clock_out: Optional[datetime] = None
-    working_hours: Optional[float] = None  # stored as float hours
+    working_hours: Optional[float] = None
 
-    status: AttendanceStatusEnum
     half_day: bool
     holiday: bool
-    work_from_home: bool
 
     model_config = {"from_attributes": True}
 
@@ -104,11 +77,9 @@ class AttendanceResponse(BaseModel):
 # DAILY DASHBOARD RESPONSE
 # =====================================================
 
-
 class DailyAttendanceResponse(BaseModel):
     employee_id: int
     attendance_date: date
-    status: AttendanceStatusEnum
     clock_in: Optional[datetime] = None
     clock_out: Optional[datetime] = None
     working_hours: Optional[float] = None
@@ -117,9 +88,8 @@ class DailyAttendanceResponse(BaseModel):
 
 
 # =====================================================
-# MONTHLY SUMMARY RESPONSE (PRO LEVEL)
+# MONTHLY SUMMARY RESPONSE
 # =====================================================
-
 
 class MonthlyAttendanceSummary(BaseModel):
     employee_id: int
@@ -128,7 +98,6 @@ class MonthlyAttendanceSummary(BaseModel):
     total_present: int
     total_absent: int
     total_leave: int
-    total_late: int
     total_working_hours: float
 
     model_config = {"from_attributes": True}
@@ -137,7 +106,6 @@ class MonthlyAttendanceSummary(BaseModel):
 # =====================================================
 # LIST RESPONSE
 # =====================================================
-
 
 class AttendanceListResponse(BaseModel):
     records: List[AttendanceResponse]
