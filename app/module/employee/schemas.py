@@ -29,6 +29,8 @@ class EmployeeBase(BaseModel):
     gender: Optional[str] = None
     ph_no: Optional[str] = None
     email: Optional[EmailStr] = None
+    deparment_name: Optional[str] = None
+    role_name: Optional[str] = None
     department_id: Optional[int] = None
     role_id: Optional[int] = None
     employee_type: Optional[EmployeeTypeEnum] = None

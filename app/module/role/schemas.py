@@ -30,6 +30,7 @@ class RoleUpdate(BaseModel):
 # RESPONSE
 # =========================
 class RoleResponse(RoleBase):
+    
     id: int
 
     class Config:
