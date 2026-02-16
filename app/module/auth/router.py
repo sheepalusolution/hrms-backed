@@ -12,11 +12,11 @@ from app.core.token import (
 )
 from app.module.auth.dependencies import get_current_user
 from app.module.auth.models import RefreshToken, User
-from app.module.auth.schemas import EmployeeCreate, LoginRequest
+from app.module.auth.schemas import EmployeeCreate
 from app.module.department.models import Department
-from app.module.employee.models import Employee, EmployeeStatusEnum
+from app.module.employee.models import Employee
 from app.module.role.models import Role
-
+from app.module.employee.models import EmployeeStatusEnum, EmployeeTypeEnum
 router = APIRouter(tags=["Auth"])
 
 
@@ -27,15 +27,10 @@ router = APIRouter(tags=["Auth"])
 def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
 
     # 1. Department & Role lookup
-    dept = (
-        db.query(Department).filter(Department.name.ilike(data.department_name)).first()
-    )
+    dept = db.query(Department).filter(Department.name.ilike(data.department_name)).first()
     role = db.query(Role).filter(Role.name.ilike(data.role_name)).first()
-
     if not dept or not role:
-        raise HTTPException(
-            status_code=400, detail="Invalid Department or Role name selected"
-        )
+        raise HTTPException(status_code=400, detail="Invalid Department or Role name selected")
 
     # 2. Email check
     if db.query(User).filter(User.email == data.email).first():
@@ -43,10 +38,7 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
 
     # 3. Create auth user
     hashed_pwd = get_password_hash(data.password)
-
-    new_user = User(
-        email=data.email, password_hash=hashed_pwd, role_id=role.id, is_active=True
-    )
+    new_user = User(email=data.email, password_hash=hashed_pwd, role_id=role.id, is_active=True)
     db.add(new_user)
     db.flush()  # ensures new_user.id is available
 
@@ -64,8 +56,8 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
         role_id=role.id,
         join_date=data.join_date,
         end_date=data.end_date,
-        employee_type=data.employee_type.value,  # convert enum to string
-        status=data.status.value if data.status else EmployeeStatusEnum.active.value,
+        employee_type=data.employee_type,  # already a string
+        status=data.status or EmployeeStatusEnum.active.value,  # default to "Active"
         address=data.address,
         nationality=data.nationality,
     )
@@ -85,8 +77,6 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
         "role_name": role.name,
         "status": new_employee.status,
     }
-
-
 # ------------------------
 # LOGIN
 # ------------------------

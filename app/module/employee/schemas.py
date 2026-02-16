@@ -6,8 +6,8 @@ from pydantic import BaseModel, EmailStr
 
 
 class EmployeeTypeEnum(str, Enum):
-    full_time = ("full_time",)
-    intern = ("intern",)
+    full_time = "full_time"
+    intern = "intern"
 
 
 class EmployeeStatusEnum(str, Enum):
@@ -38,8 +38,22 @@ class EmployeeBase(BaseModel):
     nationality: Optional[str] = None
 
 
-class EmployeeCreate(EmployeeBase):
-    pass
+class EmployeeCreate(BaseModel):
+    first_name: str
+    last_name: str
+    dob: date
+    gender: str
+    ph_no: str
+    email: str
+    password: str
+    department_name: str
+    role_name: str
+    join_date: date
+    end_date: Optional[date] = None
+    employee_type: str  # string or Enum
+    address: Optional[str] = None
+    nationality: Optional[str] = None
+    status: Optional[str] = "active"
 
 
 class EmployeeUpdate(BaseModel):

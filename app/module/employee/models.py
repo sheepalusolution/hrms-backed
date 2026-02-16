@@ -8,8 +8,8 @@ from app.core.database import Base
 
 
 class EmployeeTypeEnum(str, enum.Enum):
-    full_time = ("full_time",)
-    intern = ("intern",)
+    full_time = "full_time"
+    intern = "intern"
 
 class EmployeeStatusEnum(str, enum.Enum):
     active = "Active"
