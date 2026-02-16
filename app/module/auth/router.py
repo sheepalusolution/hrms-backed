@@ -38,7 +38,12 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
 
     # 3. Create auth user
     hashed_pwd = get_password_hash(data.password)
-    new_user = User(email=data.email, password_hash=hashed_pwd, role_id=role.id, is_active=True)
+    new_user = User(
+        email=data.email,
+        password_hash=hashed_pwd,
+        role_id=role.id,
+        is_active=True
+    )
     db.add(new_user)
     db.flush()  # ensures new_user.id is available
 
@@ -56,8 +61,8 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
         role_id=role.id,
         join_date=data.join_date,
         end_date=data.end_date,
-        employee_type=data.employee_type,  # already a string
-        status=data.status or EmployeeStatusEnum.active.value,  # default to "Active"
+        employee_type=data.employee_type.value,  # enum -> string
+        status=data.status.value if data.status else EmployeeStatusEnum.active.value,
         address=data.address,
         nationality=data.nationality,
     )

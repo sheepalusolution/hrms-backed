@@ -25,7 +25,7 @@ def get_employees(db: Session = Depends(get_db)):
 # -----------------------------
 # Get Employee by ID
 # -----------------------------
-@router.get(" {employee_id}", response_model=schemas.EmployeeOut)
+@router.get("/{employee_id}", response_model=schemas.EmployeeOut)
 def get_employee(employee_id: int, db: Session = Depends(get_db)):
     employee = (
         db.query(models.Employee).filter(models.Employee.id == employee_id).first()
@@ -38,7 +38,7 @@ def get_employee(employee_id: int, db: Session = Depends(get_db)):
 # -----------------------------
 # Update Employee
 # -----------------------------
-@router.put(" {employee_id}", response_model=schemas.EmployeeOut)
+@router.put("/{employee_id}", response_model=schemas.EmployeeOut)
 def update_employee(
     employee_id: int,
     employee_data: schemas.EmployeeUpdate,
@@ -61,7 +61,7 @@ def update_employee(
 # -----------------------------
 # Soft Delete Employee (Mark as Resigned)
 # -----------------------------
-@router.delete(" {employee_id}", response_model=schemas.EmployeeOut)
+@router.delete("/{employee_id}", response_model=schemas.EmployeeOut)
 def delete_employee(employee_id: int, db: Session = Depends(get_db)):
     employee = (
         db.query(models.Employee).filter(models.Employee.id == employee_id).first()

@@ -4,7 +4,8 @@ from starlette.responses import JSONResponse
 
 from app.core.token import verify_access_token
 
-PUBLIC_ROUTES = ["/login", "/register", "/docs", "/openapi.json", "/"]
+# ✅ Use a tuple for startswith
+PUBLIC_ROUTES = ("/login", "/register", "/docs", "/openapi.json", "/")
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -15,6 +16,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path.startswith(PUBLIC_ROUTES):
             return await call_next(request)
 
+        # Check Authorization header
         auth_header = request.headers.get("Authorization")
         print(f"AuthMiddleware: Checking auth for {auth_header}")
 
@@ -27,13 +29,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 status_code=401, content={"detail": "Authorization token missing"}
             )
 
-        return await call_next(request, verify_result)
+        # Store user info in request.state for downstream access
+        request.state.user = verify_result
 
-    async def role_check(self, request: Request):
-
-        # Placeholder for role-based access control
-        dispatch_result = await self.dispatch(request)
-        if dispatch_result.status_code != 200:
-            return dispatch_result
-
-        pass
+        return await call_next(request)

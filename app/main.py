@@ -12,7 +12,7 @@ from app.module.auth.router import router as auth_router
 from app.module.department.router import router as department_router
 from app.module.employee.routers import router as employee_router
 from app.module.role.routers import router as role_router
-
+from app.core.middleware import AuthMiddleware
 app = FastAPI(title="HRMS Backend")
 
 app.add_middleware(
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
-
+# app.add_middleware(AuthMiddleware)
 # Include routers
 app.include_router(auth_router, prefix="/auth")
 app.include_router(role_router, prefix="/roles")
