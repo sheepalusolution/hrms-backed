@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-
+from app.module.employee.models import Employee
 from app.core.database import get_db
 from app.core.roles import Role
 from app.core.security import decode_token
@@ -52,3 +52,19 @@ def get_superadmin(current_user: User = Depends(get_current_user)):
             detail="You do not have enough permissions to perform this action",
         )
     return current_user
+
+def get_current_employee(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Employee:
+
+    employee = (
+        db.query(Employee)
+        .filter(Employee.user_id == current_user.id)   # 🔥 important relation
+        .first()
+    )
+
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+
+    return employee
