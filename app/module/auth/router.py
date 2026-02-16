@@ -17,6 +17,7 @@ from app.module.department.models import Department
 from app.module.employee.models import Employee
 from app.module.role.models import Role
 from app.module.employee.models import EmployeeStatusEnum, EmployeeTypeEnum
+
 router = APIRouter(tags=["Auth"])
 
 
@@ -25,7 +26,6 @@ router = APIRouter(tags=["Auth"])
 # ------------------------
 @router.post("/register")
 def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
-
     # 1. Department & Role lookup
     dept = db.query(Department).filter(Department.name.ilike(data.department_name)).first()
     role = db.query(Role).filter(Role.name.ilike(data.role_name)).first()
@@ -61,12 +61,11 @@ def register_employee(data: EmployeeCreate, db: Session = Depends(get_db)):
         role_id=role.id,
         join_date=data.join_date,
         end_date=data.end_date,
-        employee_type=data.employee_type.value,  # enum -> string
-        status=data.status.value if data.status else EmployeeStatusEnum.active.value,
+        employee_type=data.employee_type,  # Enum -> string
+        status=EmployeeStatusEnum.active.value,
         address=data.address,
         nationality=data.nationality,
     )
-
     db.add(new_employee)
 
     try:

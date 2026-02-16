@@ -4,7 +4,9 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 
 
-# --- ENUMS ---
+# -----------------------------
+# Enums
+# -----------------------------
 class EmployeeTypeEnum(str, Enum):
     full_time = "full_time"
     intern = "intern"
@@ -16,7 +18,9 @@ class EmployeeStatusEnum(str, Enum):
     leave = "leave"
 
 
-# --- BASE SCHEMA ---
+# -----------------------------
+# Base Model
+# -----------------------------
 class EmployeeBase(BaseModel):
     user_id: int
     first_name: str
@@ -35,7 +39,9 @@ class EmployeeBase(BaseModel):
     nationality: Optional[str] = None
 
 
-# --- CREATE SCHEMA ---
+# -----------------------------
+# Create Model
+# -----------------------------
 class EmployeeCreate(BaseModel):
     first_name: str
     last_name: str
@@ -48,13 +54,15 @@ class EmployeeCreate(BaseModel):
     role_name: str
     join_date: date
     end_date: Optional[date] = None
-    employee_type: EmployeeTypeEnum = EmployeeTypeEnum.full_time  # default
+    employee_type: EmployeeTypeEnum  # ✅ Enum now
     address: Optional[str] = None
     nationality: Optional[str] = None
-    status: EmployeeStatusEnum = EmployeeStatusEnum.active  # default
+    status: Optional[EmployeeStatusEnum] = EmployeeStatusEnum.active  # ✅ Enum default
 
 
-# --- UPDATE SCHEMA ---
+# -----------------------------
+# Update Model
+# -----------------------------
 class EmployeeUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -72,7 +80,9 @@ class EmployeeUpdate(BaseModel):
     nationality: Optional[str] = None
 
 
-# --- OUTPUT SCHEMA ---
+# -----------------------------
+# Output Model
+# -----------------------------
 class EmployeeOut(EmployeeBase):
     id: int
 
