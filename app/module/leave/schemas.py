@@ -12,7 +12,6 @@ class LeaveStatus(str, Enum):
 
 # 🔹 Apply leave
 class LeaveCreate(BaseModel):
-    employee_id: int
     start_date: date
     end_date: date
     reason: str
