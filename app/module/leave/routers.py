@@ -38,7 +38,7 @@ def apply_leave(
 
     return {"message": "Leave applied successfully", "leave_id": new_leave.id}
 
-
+@router.put("/{leave_id}")
 def approve_leave(
     leave_id: int,
     action: LeaveAction,  # {"status": "Approved"}
