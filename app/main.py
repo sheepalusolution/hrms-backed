@@ -35,7 +35,7 @@ app.include_router(department_router, prefix="/departments")
 # app.include_router(payroll_router, prefix="/payrolls")
 app.include_router(attendance_router, prefix="/attendances")
 app.include_router(leave_router, prefix="/leaves")
-app.include_router(document_router, prefix="/documents")
+# app.include_router(document_router, prefix="/documents")
 # app.include_router(designation_router, prefix="/designations")
 # 🔥 Now SQLAlchemy knows all tables
 Base.metadata.create_all(bind=engine)

@@ -2,6 +2,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -90,3 +91,46 @@ def clock_out(
         "clock_out_time": attendance.clock_out,
         "working_hours": attendance.working_hours,
     }
+@router.get("/monthly")
+def get_monthly_attendance(
+    year: int,
+    month: int,
+    current_employee: Employee = Depends(get_current_employee),
+    db: Session = Depends(get_db),
+):
+    records = (
+        db.query(Attendance)
+        .filter(
+            Attendance.employee_id == current_employee.id,
+            extract("year", Attendance.attendance_date) == year,
+            extract("month", Attendance.attendance_date) == month,
+        )
+        .order_by(Attendance.attendance_date)
+        .all()
+    )
+
+    return records
+
+@router.get("/today-status")
+def today_status(
+    current_employee: Employee = Depends(get_current_employee),
+    db: Session = Depends(get_db),
+):
+    today = datetime.now(tz=NEPAL_TZ).date()
+
+    attendance = (
+        db.query(Attendance)
+        .filter(
+            Attendance.employee_id == current_employee.id,
+            Attendance.attendance_date == today,
+        )
+        .first()
+    )
+
+    if not attendance:
+        return {"status": "Absent"}
+
+    if attendance.clock_out:
+        return {"status": "Completed"}
+
+    return {"status": "Clocked-in"}
