@@ -1,87 +1,58 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.module.auth.models import User
-from app.module.employee.models import Employee
-from app.module.leave.models import Leave
-from app.module.leave.schemas import (
-    LeaveCreate,
-    LeaveOut,
-    LeaveUpdateStatus,
-)
+from app.module.leave.models import Leave, LeaveStatus
+from app.module.leave.schemas import LeaveCreate, LeaveResponse, LeaveAction
 
 router = APIRouter(tags=["Leaves"])
 
+@router.post("/", response_model=LeaveResponse)
+def apply_leave(data: LeaveCreate, db: Session = Depends(get_db)):
 
-# =======================
-# Create a Leave
-# =======================
-@router.post("/", response_model=LeaveOut, status_code=status.HTTP_201_CREATED)
-def create_leave(leave: LeaveCreate, db: Session = Depends(get_db)):
-    employee = db.query(Employee).filter(Employee.id == leave.employee_id).first()
-    if not employee:
-        raise HTTPException(status_code=404, detail="Employee not found")
+    leave = Leave(
+        employee_id=data.employee_id,
+        reason=data.reason
+    )
 
-    new_leave = Leave(employee_id=leave.employee_id, reason=leave.reason)
-    db.add(new_leave)
+    db.add(leave)
     db.commit()
-    db.refresh(new_leave)
-    return new_leave
+    db.refresh(leave)
 
-
-# =======================
-# Get All Leaves
-# =======================
-@router.get("/", response_model=List[LeaveOut])
-def get_leaves(db: Session = Depends(get_db)):
-    return db.query(Leave).all()
-
-
-# =======================
-# Get Leave by ID
-# =======================
-@router.get("/{leave_id}", response_model=LeaveOut)
-def get_leave(leave_id: int, db: Session = Depends(get_db)):
-    leave = db.query(Leave).filter(Leave.id == leave_id).first()
-    if not leave:
-        raise HTTPException(status_code=404, detail="Leave not found")
     return leave
 
+@router.get("/", response_model=list[LeaveResponse])
+def get_all_leaves(db: Session = Depends(get_db)):
+    return db.query(Leave).all()
 
-# =======================
-# Update Leave Status (Approve/Reject)
-# =======================
-@router.put("/{leave_id}/status", response_model=LeaveOut)
-def update_leave_status(
-    leave_id: int, status_update: LeaveUpdateStatus, db: Session = Depends(get_db)
+@router.get("/employee/{employee_id}", response_model=list[LeaveResponse])
+def get_employee_leaves(employee_id: int, db: Session = Depends(get_db)):
+
+    leaves = db.query(Leave).filter(
+        Leave.employee_id == employee_id
+    ).all()
+
+    return leaves
+
+@router.put("/{leave_id}", response_model=LeaveResponse)
+def leave_action(
+    leave_id: int,
+    data: LeaveAction,
+    db: Session = Depends(get_db),
 ):
+
     leave = db.query(Leave).filter(Leave.id == leave_id).first()
+
     if not leave:
         raise HTTPException(status_code=404, detail="Leave not found")
 
-    approver = db.query(User).filter(User.id == status_update.approved_by).first()
-    if not approver:
-        raise HTTPException(status_code=404, detail="Approver not found")
+    leave.status = data.status
 
-    leave.status = status_update.status
-    leave.approved_by = status_update.approved_by
+    # ⚠️ Replace with current logged-in user ID
+    leave.approved_by = 1
 
     db.commit()
     db.refresh(leave)
+
     return leave
 
-
-# =======================
-# Delete Leave
-# =======================
-@router.delete("/{leave_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_leave(leave_id: int, db: Session = Depends(get_db)):
-    leave = db.query(Leave).filter(Leave.id == leave_id).first()
-    if not leave:
-        raise HTTPException(status_code=404, detail="Leave not found")
-    db.delete(leave)
-    db.commit()
-    return

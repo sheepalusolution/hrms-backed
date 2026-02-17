@@ -18,7 +18,8 @@ class Leave(Base):
 
     id = Column(Integer, primary_key=True)
     employee_id = Column(Integer, ForeignKey("employee.id"))
-    approved_by = Column(Integer, ForeignKey("users.id"))
+    approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
     reason = Column(Text)
 
     status = Column(Enum(LeaveStatus), default=LeaveStatus.Pending)

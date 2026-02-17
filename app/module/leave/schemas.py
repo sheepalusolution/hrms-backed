@@ -1,35 +1,34 @@
-from enum import Enum
+from datetime import datetime
 from typing import Optional
+from pydantic import BaseModel, ConfigDict
+from enum import Enum
 
-from pydantic import BaseModel
 
-
-# Use the same enum as in your SQLAlchemy model
 class LeaveStatus(str, Enum):
     Pending = "Pending"
     Approved = "Approved"
     Rejected = "Rejected"
 
 
-# Schema for creating a leave
+# 🔹 Apply leave
 class LeaveCreate(BaseModel):
     employee_id: int
-    reason: str
+    employee_name: Optional[str] = None
+    reason: Optional[str] = None
 
 
-# Schema for updating leave status
-class LeaveUpdateStatus(BaseModel):
+# 🔹 Approve / Reject leave
+class LeaveAction(BaseModel):
     status: LeaveStatus
-    approved_by: int
 
 
-# Schema for returning leave data
-class LeaveOut(BaseModel):
+# 🔹 Response
+class LeaveResponse(BaseModel):
     id: int
     employee_id: int
-    approved_by: Optional[int] = None
-    reason: str
+    employee_name: Optional[str] = None
+    approved_by: Optional[int]
+    reason: Optional[str]
     status: LeaveStatus
 
-    class Config:
-        from_attribute = True
+    model_config = ConfigDict(from_attributes=True)
