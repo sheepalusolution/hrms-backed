@@ -7,19 +7,24 @@ from app.module.leave.schemas import LeaveCreate, LeaveResponse, LeaveAction
 
 router = APIRouter(tags=["Leaves"])
 
-@router.post("/", response_model=LeaveResponse)
+@router.post("/apply-leave")
 def apply_leave(data: LeaveCreate, db: Session = Depends(get_db)):
+    # Ensure data.start_date and data.end_date are not None
+    if not data.start_date or not data.end_date:
+        raise HTTPException(status_code=400, detail="Start date and end date are required")
 
-    leave = Leave(
+    new_leave = Leave(
         employee_id=data.employee_id,
-        reason=data.reason
+        reason=data.reason,
+        start_date=data.start_date, # Make sure these match the schema fields
+        end_date=data.end_date,
+        status="Pending",
+        approved_by=None # This is fine as null initially
     )
-
-    db.add(leave)
+    
+    db.add(new_leave)
     db.commit()
-    db.refresh(leave)
-
-    return leave
+    return {"message": "Leave applied successfully"}
 
 @router.get("/", response_model=list[LeaveResponse])
 def get_all_leaves(db: Session = Depends(get_db)):

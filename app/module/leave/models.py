@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Column, Enum, ForeignKey, Integer, Text
+from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, Text
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -21,6 +21,8 @@ class Leave(Base):
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     reason = Column(Text)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
 
     status = Column(Enum(LeaveStatus), default=LeaveStatus.Pending)
 
