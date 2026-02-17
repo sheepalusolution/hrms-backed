@@ -1,45 +1,70 @@
-from typing import List
-
-from fastapi import APIRouter, Depends, HTTPException
+import os
+from uuid import uuid4
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.module.document import models, schemas
+from app.module.document.models import Document
+from app.module.document.schemas import DocumentResponse
 
-router = APIRouter()
+router = APIRouter(tags=["Documents"])
 
+UPLOAD_DIR = "media/documents"
 
-# Create a new document
-@router.post("", response_model=schemas.DocumentOut)
-def create_document(document: schemas.DocumentCreate, db: Session = Depends(get_db)):
-    new_doc = models.Document(**document.dict())
-    db.add(new_doc)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+@router.post("/upload", response_model=DocumentResponse)
+def upload_document(
+    employee_id: int = Form(...),
+    document_type: str = Form(None),
+    profile_photo: UploadFile = File(None),
+    resume: UploadFile = File(None),
+    db: Session = Depends(get_db),
+):
+
+    profile_path = None
+    resume_path = None
+
+    # ✅ Save profile photo
+    if profile_photo:
+        filename = f"{uuid4()}_{profile_photo.filename}"
+        filepath = os.path.join(UPLOAD_DIR, filename)
+
+        with open(filepath, "wb") as f:
+            f.write(profile_photo.file.read())
+
+        profile_path = filepath
+
+    # ✅ Save resume
+    if resume:
+        filename = f"{uuid4()}_{resume.filename}"
+        filepath = os.path.join(UPLOAD_DIR, filename)
+
+        with open(filepath, "wb") as f:
+            f.write(resume.file.read())
+
+        resume_path = filepath
+
+    document = Document(
+        employee_id=employee_id,
+        document_type=document_type,
+        profile_photo=profile_path,
+        resume=resume_path,
+    )
+
+    db.add(document)
     db.commit()
-    db.refresh(new_doc)
-    return new_doc
+    db.refresh(document)
 
+    return document
+@router.get("/employee/{employee_id}", response_model=list[DocumentResponse])
+def get_employee_documents(employee_id: int, db: Session = Depends(get_db)):
 
-# Get all documents
-@router.get("", response_model=List[schemas.DocumentOut])
-def get_documents(db: Session = Depends(get_db)):
-    return db.query(models.Document).all()
+    docs = db.query(Document).filter(
+        Document.employee_id == employee_id
+    ).all()
 
+    if not docs:
+        raise HTTPException(status_code=404, detail="No documents found")
 
-# Get document by ID
-@router.get("/{document_id}", response_model=schemas.DocumentOut)
-def get_document(document_id: int, db: Session = Depends(get_db)):
-    doc = db.query(models.Document).filter(models.Document.id == document_id).first()
-    if not doc:
-        raise HTTPException(status_code=404, detail="Document not found")
-    return doc
+    return docs
 
-
-# Delete document
-@router.delete("/{document_id}")
-def delete_document(document_id: int, db: Session = Depends(get_db)):
-    doc = db.query(models.Document).filter(models.Document.id == document_id).first()
-    if not doc:
-        raise HTTPException(status_code=404, detail="Document not found")
-    db.delete(doc)
-    db.commit()
-    return {"detail": "Document deleted"}
