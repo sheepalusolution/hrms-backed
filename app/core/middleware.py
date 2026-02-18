@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 from app.core.token import verify_access_token
 
 # ✅ Use a tuple for startswith
-PUBLIC_ROUTES = ("/login", "/register", "/docs", "/openapi.json", "/")
+PUBLIC_ROUTES = ("/login", "/register", "/docs", "/openapi.json", "/attendances", "/leaves", "/departments","/")
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
