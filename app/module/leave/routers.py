@@ -52,7 +52,7 @@ def approve_leave(
     if leave.status != LeaveStatus.Pending:
         raise HTTPException(status_code=400, detail="Only pending leaves can be approved")
 
-    if current_user.role.name not in ["hr_admin"]:
+    if current_user.role.name not in ["hr_admin", "superadmin"]:
         raise HTTPException(status_code=403, detail="Not authorized to approve leave")
 
     leave.status = LeaveStatus.Approved
