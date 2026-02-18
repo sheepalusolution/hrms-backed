@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class AssetCreate(BaseModel):
-    name: str
+    asset_name: str
     category: str
     quantity: int = 1
     value: float | None = None
@@ -11,7 +11,7 @@ class AssetCreate(BaseModel):
 
 class AssetOut(BaseModel):
     id: int
-    name: str
+    asset_name: str
     category: str
     quantity: int
     value: float | None

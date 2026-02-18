@@ -17,6 +17,7 @@ from app.module.document.router import router as document_router
 from app.module.payroll.router import router as payroll_router
 from app.module.designation.router import router as designation_router
 from app.module.audit.router import router as audit_log_router
+from app.module.asset.router import router as asset_router
 from app.core.middleware import AuthMiddleware
 app = FastAPI(title="HRMS Backend")
 
@@ -33,7 +34,7 @@ app.include_router(auth_router, prefix="/auth")
 app.include_router(role_router, prefix="/roles")
 
 app.include_router(employee_router, prefix="/employees")
-# app.include_router(asset_router, prefix="/asset")
+app.include_router(asset_router, prefix="/asset")
 app.include_router(department_router, prefix="/departments")
 # app.include_router(payroll_router, prefix="/payrolls")
 app.include_router(attendance_router, prefix="/attendances")
