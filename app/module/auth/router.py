@@ -151,7 +151,7 @@ def login(
 # ------------------------
 @router.get("/profile")
 def profile(current_user: User = Depends(get_current_user)):
-    return {"email": current_user.email, "role_id": current_user.role_id}
+    return {"email": current_user.email, "role_id": current_user.role_id, "role_name": ROLE_MAP.get(current_user.role_id, "user")}
 
 
 # ------------------------
