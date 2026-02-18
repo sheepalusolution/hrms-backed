@@ -14,6 +14,9 @@ from app.module.employee.routers import router as employee_router
 from app.module.role.routers import router as role_router
 from app.module.leave.routers import router as leave_router
 from app.module.document.router import router as document_router
+from app.module.payroll.router import router as payroll_router
+from app.module.designation.router import router as designation_router
+from app.module.audit.router import router as audit_log_router
 from app.core.middleware import AuthMiddleware
 app = FastAPI(title="HRMS Backend")
 
@@ -37,6 +40,7 @@ app.include_router(attendance_router, prefix="/attendances")
 app.include_router(leave_router, prefix="/leaves")
 # app.include_router(document_router, prefix="/documents")
 # app.include_router(designation_router, prefix="/designations")
+app.include_router(audit_log_router, prefix="/audit-logs")
 # 🔥 Now SQLAlchemy knows all tables
 Base.metadata.create_all(bind=engine)
 
