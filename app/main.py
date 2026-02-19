@@ -28,20 +28,20 @@ app.add_middleware(
     allow_headers=["*"],
     allow_credentials=True,
 )
-# app.add_middleware(AuthMiddleware)
+app.add_middleware(AuthMiddleware)
 # Include routers
 app.include_router(auth_router, prefix="/auth")
-app.include_router(role_router, prefix="/roles")
-
-app.include_router(employee_router, prefix="/employees")
-app.include_router(asset_router, prefix="/asset")
-app.include_router(department_router, prefix="/departments")
-# app.include_router(payroll_router, prefix="/payrolls")
 app.include_router(attendance_router, prefix="/attendances")
-app.include_router(leave_router, prefix="/leaves")
+app.include_router(asset_router, prefix="/asset")
+app.include_router(audit_log_router, prefix="/audit-logs")
+app.include_router(department_router, prefix="/departments")
 app.include_router(document_router, prefix="/documents")
 app.include_router(designation_router, prefix="/designations")
-app.include_router(audit_log_router, prefix="/audit-logs")
+app.include_router(employee_router, prefix="/employees")
+app.include_router(leave_router, prefix="/leaves")
+app.include_router(payroll_router, prefix="/payrolls")
+app.include_router(role_router, prefix="/roles")
+
 # 🔥 Now SQLAlchemy knows all tables
 Base.metadata.create_all(bind=engine)
 
