@@ -1,19 +1,20 @@
+from datetime import datetime
+from pydantic import BaseModel
 from typing import Optional
-from pydantic import BaseModel, ConfigDict
 
+class DocumentBase(BaseModel):
+    description: Optional[str] = None
+    document_type: str
 
-# 🔹 Create document (while uploading)
-class DocumentCreate(BaseModel):
-    employee_id: int
-    document_type: Optional[str] = None
+class DocumentCreate(DocumentBase):
+    file: bytes  # optional if you want to upload file as bytes
+    file_name: str  # original file name
 
-
-# 🔹 Response schema
-class DocumentResponse(BaseModel):
+class DocumentResponse(DocumentBase):
     id: int
+    file_path: str
+    upload_date: datetime
     employee_id: int
-    document_type: Optional[str]
-    profile_photo: Optional[str]
-    resume: Optional[str]
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        from_attribute = True
