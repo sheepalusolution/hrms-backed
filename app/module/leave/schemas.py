@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
 from enum import Enum
@@ -10,11 +10,17 @@ class LeaveStatus(str, Enum):
     Rejected = "Rejected"
 
 
+class LeaveDayType(str, Enum):
+    Full = "Full"
+    Half = "Half"
+
+
 # 🔹 Apply leave
 class LeaveCreate(BaseModel):
     start_date: date
     end_date: date
-    reason: str
+    reason: str      
+    day_type: LeaveDayType = LeaveDayType.Full  # Default to Full Day
 
 
 # 🔹 Approve / Reject leave
@@ -28,6 +34,7 @@ class LeaveResponse(BaseModel):
     employee_id: int
     approved_by: Optional[int]
     reason: Optional[str]
+    day_type: LeaveDayType
     status: LeaveStatus
 
     model_config = ConfigDict(from_attributes=True)

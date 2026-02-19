@@ -1,17 +1,18 @@
 import enum
-
-from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, Text
+from sqlalchemy import Column, Date, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-
 from app.core.database import Base
 
-
-# Define an Enum class for allowed leave statuses
+# Leave Status
 class LeaveStatus(enum.Enum):
     Pending = "Pending"
     Approved = "Approved"
     Rejected = "Rejected"
 
+# Leave Type
+class LeaveDayType(enum.Enum):
+    Full = "Full"
+    Half = "Half"
 
 class Leave(Base):
     __tablename__ = "leaves"
@@ -24,6 +25,8 @@ class Leave(Base):
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=False)
 
+ 
+    day_type = Column(Enum(LeaveDayType), default=LeaveDayType.Full)  # Full Day / Half Day
     status = Column(Enum(LeaveStatus), default=LeaveStatus.Pending)
 
     employee = relationship("Employee", back_populates="leaves")
