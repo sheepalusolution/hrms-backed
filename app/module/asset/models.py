@@ -19,12 +19,12 @@ class Assets(Base):
     id = Column(Integer, primary_key=True)
     asset_name = Column(String(100), nullable=False)
     quantity = Column(Integer, default=1)
-
+    category = Column(String(50), nullable=False)
     status = Column(SQLEnum(AssetStatusEnum), default=AssetStatusEnum.available)
 
     employee_id = Column(Integer, ForeignKey("employee.id"), nullable=True)
     assigned_date = Column(Date, nullable=True)
     return_date = Column(Date, nullable=True)
-    condition_on_return = Column(Text, nullable=True)
+    
 
     employee = relationship("Employee", back_populates="assets")

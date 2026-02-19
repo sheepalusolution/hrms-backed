@@ -1,21 +1,33 @@
+# app/module/Asset/schemas.py
 from pydantic import BaseModel
+from typing import Optional
+from datetime import date
+from enum import Enum
 
 
-class AssetCreate(BaseModel):
-    name: str
-    category: str
+# Must match your SQLAlchemy Enum
+class AssetStatusEnum(str, Enum):
+    damaged = "Damaged"
+    available = "Available"
+    assigned = "Assigned"
+
+
+class AssetBase(BaseModel):
+    asset_name: str
     quantity: int = 1
-    value: float | None = None
-    description: str | None = None
+    category: str 
+    status: Optional[AssetStatusEnum] = AssetStatusEnum.available
+    employee_id: Optional[int] = None
+    assigned_date: Optional[date] = None
+    return_date: Optional[date] = None
 
 
-class AssetOut(BaseModel):
+class AssetCreate(AssetBase):
+    pass
+
+
+class AssetOut(AssetBase):
     id: int
-    name: str
-    category: str
-    quantity: int
-    value: float | None
-    description: str | None
 
     class Config:
         from_attribute = True
