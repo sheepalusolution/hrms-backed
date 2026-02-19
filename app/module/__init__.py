@@ -1,4 +1,4 @@
-from .asset.models import Assets
+from .Asset.models import Assets
 from .attendance.models import Attendance
 from .audit.models import AuditLog
 from .auth.models import User

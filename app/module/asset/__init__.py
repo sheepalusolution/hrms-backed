@@ -1,1 +1,1 @@
-from app.module.asset.models import Assets
+from app.module.Asset.models import Assets
