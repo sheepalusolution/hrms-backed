@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.module.audit import models, schemas
 from app.module.auth.dependencies import get_current_user
+from app.module.auth.models import User
 
 router = APIRouter(tags=["Audit Logs"])
 
@@ -31,15 +32,43 @@ def create_audit_log(
 
 
 # 📌 Admin can view all audit logs
-@router.get("", response_model=list[schemas.AuditLogOut])
-def get_audit_logs(db: Session = Depends(get_db), user=Depends(get_current_user)):
-    # Only Admin & HR should be allowed here (you already have RBAC)
-    return db.query(models.AuditLog).order_by(models.AuditLog.timestamp.desc()).all()
+@router.get("/all", response_model=list[schemas.AuditLogOut])
+def get_all_audit_logs(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role_id != 4:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return db.query(models.AuditLog).order_by(
+        models.AuditLog.timestamp.desc()
+    ).all()
 
 
 # 📌 Get logs for specific user
-@router.get("/{user_id}", response_model=list[schemas.AuditLogOut])
-def get_user_logs(
-    user_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)
+@router.get("/my", response_model=list[schemas.AuditLogOut])
+def get_my_audit_logs(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return db.query(models.AuditLog).filter(models.AuditLog.user_id == user_id).all()
+    logs = (
+        db.query(models.AuditLog)
+        .filter(models.AuditLog.user_id == current_user.id)
+        .order_by(models.AuditLog.timestamp.desc())
+        .all()
+    )
+
+    return logs
+
+@router.get("/user/{user_id}", response_model=list[schemas.AuditLogOut])
+def get_user_logs(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role_id != 4:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return db.query(models.AuditLog).filter(
+        models.AuditLog.user_id == user_id
+    ).all()

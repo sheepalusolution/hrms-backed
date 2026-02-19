@@ -9,10 +9,25 @@ from app.core.database import get_db
 from app.module.attendance.models import Attendance
 from app.module.employee.models import Employee
 from app.module.auth.dependencies import get_current_employee   # 👈 ADD THIS
+from app.module.auth.dependencies import get_superadmin
+from app.module.auth.models import User
 
 router = APIRouter(tags=["Attendance"])
 
 NEPAL_TZ = ZoneInfo("Asia/Kathmandu")
+
+@router.get("/all-attendance")
+def get_all_attendance(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_superadmin),  # 🔥 SuperAdmin only
+):
+    records = db.query(Attendance).order_by(Attendance.attendance_date.desc()).all()
+
+    return {
+        "message": "All attendance records",
+        "total": len(records),
+        "data": records,
+    }
 
 @router.post("/clock-in", status_code=status.HTTP_201_CREATED)
 def clock_in(
