@@ -16,7 +16,7 @@ class EmployeeCreate(BaseModel):
     dob: date  # Date of Birth
     ph_no: str
     department_name: str
-    deparment_id: int
+    department_id: int
     role_name: str
     role_id: int
     employee_type: str
