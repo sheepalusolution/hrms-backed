@@ -1,73 +1,69 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.module.payroll import models, schemas
+from app.module.payroll.models import Payroll
+from app.module.payroll.schemas import PayrollGenerateRequest, PayrollResponse
+from app.module.auth.dependencies import get_current_employee, get_superadmin
+from app.module.auth.models import User
 
 router = APIRouter(tags=["Payroll"])
 
 
-# Create a new payroll record
-@router.post("", response_model=schemas.PayrollOut)
-def create_payroll(payroll: schemas.PayrollCreate, db: Session = Depends(get_db)):
-    new_payroll = models.Payroll(
-        employee_id=payroll.employee_id,
-        salary=payroll.salary,
-        month=payroll.month,
-        year=payroll.year,
-        currency=payroll.currency.value,  # store enum as string
-    )
-    db.add(new_payroll)
-    db.commit()
-    db.refresh(new_payroll)
-    return new_payroll
-
-
-# Get all payroll records
-@router.get("", response_model=List[schemas.PayrollOut])
-def get_payrolls(db: Session = Depends(get_db)):
-    return db.query(models.Payroll).all()
-
-
-# Get payroll record by ID
-@router.get("/{payroll_id}", response_model=schemas.PayrollOut)
-def get_payroll(payroll_id: int, db: Session = Depends(get_db)):
-    payroll = db.query(models.Payroll).filter(models.Payroll.id == payroll_id).first()
-    if not payroll:
-        raise HTTPException(status_code=404, detail="Payroll record not found")
-    return payroll
-
-
-# Delete payroll record
-@router.delete("/{payroll_id}")
-def delete_payroll(payroll_id: int, db: Session = Depends(get_db)):
-    payroll = db.query(models.Payroll).filter(models.Payroll.id == payroll_id).first()
-    if not payroll:
-        raise HTTPException(status_code=404, detail="Payroll record not found")
-    db.delete(payroll)
-    db.commit()
-    return {"detail": "Payroll record deleted"}
-
-
-# Optional: Update payroll record
-@router.put("/{payroll_id}", response_model=schemas.PayrollOut)
-def update_payroll(
-    payroll_id: int,
-    payroll_update: schemas.PayrollCreate,
+# ✅ SUPER ADMIN ONLY
+@router.post("/generate", response_model=PayrollResponse)
+def generate_payroll(
+    data: PayrollGenerateRequest,
     db: Session = Depends(get_db),
+    admin: User = Depends(get_superadmin),
 ):
-    payroll = db.query(models.Payroll).filter(models.Payroll.id == payroll_id).first()
-    if not payroll:
-        raise HTTPException(status_code=404, detail="Payroll record not found")
+    existing = db.query(Payroll).filter(
+        Payroll.employee_id == data.employee_id,
+        Payroll.month == data.month,
+        Payroll.year == data.year
+    ).first()
 
-    payroll.employee_id = payroll_update.employee_id
-    payroll.salary = payroll_update.salary
-    payroll.month = payroll_update.month
-    payroll.year = payroll_update.year
-    payroll.currency = payroll_update.currency.value
+    if existing:
+        raise HTTPException(status_code=400, detail="Payroll already exists")
 
+    payroll = Payroll(**data.dict())
+
+    db.add(payroll)
     db.commit()
     db.refresh(payroll)
+
     return payroll
+
+
+# ✅ SUPER ADMIN ONLY
+@router.get("/all", response_model=list[PayrollResponse])
+def get_all_payroll(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_superadmin),
+):
+    return db.query(Payroll).all()
+
+
+# ✅ EMPLOYEE SELF VIEW
+@router.get("/my", response_model=list[PayrollResponse])
+def get_my_payroll(
+    db: Session = Depends(get_db),
+    current_employee = Depends(get_current_employee),
+):
+    return db.query(Payroll).filter(
+        Payroll.employee_id == current_employee.id
+    ).all()
+
+
+# ✅ SUPER ADMIN ONLY
+@router.get("/filter", response_model=list[PayrollResponse])
+def filter_payroll(
+    month: int,
+    year: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_superadmin),
+):
+    return db.query(Payroll).filter(
+        Payroll.month == month,
+        Payroll.year == year
+    ).all()

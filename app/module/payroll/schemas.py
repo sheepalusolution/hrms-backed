@@ -1,30 +1,24 @@
-from enum import Enum
-
 from pydantic import BaseModel
+from app.module.payroll.models import CurrencyEnum
 
 
-# Optional: Currency Enum for Pydantic validation
-class CurrencyEnum(str, Enum):
-    NPR = "NPR"
-    USD = "USD"
-    EUR = "EUR"
-
-
-class PayrollCreate(BaseModel):
-    employee_id: int
-    salary: float
-    month: int  # 1-12
-    year: int
-    currency: CurrencyEnum  # NPR, USD, EUR
-
-
-class PayrollOut(BaseModel):
-    id: int
-    employee_id: int
+class PayrollBase(BaseModel):
     salary: float
     month: int
     year: int
     currency: CurrencyEnum
 
+class PayrollGenerateRequest(BaseModel):
+    employee_id: int
+    salary: float
+    month: int
+    year: int
+    currency: CurrencyEnum# Admin will send this
+
+
+class PayrollResponse(PayrollBase):
+    id: int
+    employee_id: int
+
     class Config:
-        from_attribute = True
+        from_attributes = True
